@@ -1,0 +1,64 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const pageTitle = "About Me";
+
+const identity = {
+  firstName: "McKenzie",
+  country: "United States",
+  futureCountry: "Italy or elsewhere in Europe",
+  occupation: "Post Grad",
+  hobbies: ["photography", "knitting", "baseball"],
+};
+
+const skills = ["HTML", "CSS", "JavaScript", "React", "Astro", "Writing Docs"];
+
+const happy = true;
+const finished = true;
+const goal = 3;
+const skillColor = "red";
+const fontWeight = "bold";
+const textCase = "uppercase";
+const bootyCheeks = "big";
+---
+
+<BaseLayout pageTitle={pageTitle}>
+        <style is:global define:vars={{skillColor, fontWeight, textCase}}>
+            h1 {
+                color: purple;
+                font-size: 4rem;
+            }
+
+            .skill {
+                color: var(--skillColor);
+                font-weight: var(--fontWeight);
+                text-transform: var(--textCase);
+            }
+        </style>
+
+        <h2>This is my new Astro site!</h2>
+
+        <img src="https://cdn.myportfolio.com/185f8eaf-b422-4b1d-9aaf-02b71649f7f0/120e63a7-3980-4624-bad6-23db0cf1a4f1_rw_1920.JPG?h=71d2f6f0e9daaa97351cb843d6369621" style="width:30%"/>
+        <p>McKenzie Ryan is an emerging artist practicing digital and analog photography. McKenzie is currently studying Visual Arts at the University of California San Diego. Originally from the Midwest, McKenzie began examining ethics and the environment while studying entrepreneurship and geography at the University of Iowa before moving to San Diego. With an emphasis on traces and landscapes, McKenzie's work frequently explores the historical, socio-political, and environmental influence on communities and identities. </p>
+
+        <p>This site will update as I complete more of the tutorial, so keep checking back and see how my journey is going! Woohoo!</p>
+	
+        <p>Here are a few facts about me:</p>
+        <ul>
+            <li>My name is {identity.firstName}</li>
+            <li>My hobby is {identity.hobbies[2]}</li>
+            <li>I live in {identity.country} but I want to live in {identity.futureCountry}.</li>
+            {identity.hobbies.length >= 2 &&
+                <li>Two of my hobbies are: {identity.hobbies[0]} and {identity.hobbies[1]}</li>
+            }
+        </ul>
+
+        <p>My skills are:</p>
+        <ul>
+            {skills.map((skill) => <li class="skill">{skill}</li>)}
+        </ul>
+
+        {happy && <p>I am happy to be learning Astro!</p>}
+        {finished && <p>I finished this tutorial!</p>}
+        {goal === 3 ? <p>My goal is to finish in 3 days.</p> : <p>My goal is not 3 days</p>}
+</BaseLayout>
