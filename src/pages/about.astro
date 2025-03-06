@@ -43,10 +43,11 @@ const pageTitle = "bio & cv";
     .container {
         display: grid;
         grid-template-columns: auto;
-        font-size: 12px;
+        font-size: 14px;
         font-family: 'Avenir Book';
         max-width: 1200px;
-        padding-right: 60px;
+        padding-right: 10px;
+        padding-left: 10px;
     }
 
     #bio p {
@@ -63,9 +64,10 @@ const pageTitle = "bio & cv";
     }
 
     #cv {
-        text-align: left;
+        text-align: right;
         padding-top: 30px;
         padding-bottom: 60px;
+        max-width: 450px;
     }
 
     #cv ul {
@@ -79,6 +81,8 @@ const pageTitle = "bio & cv";
         font-size: 40px;
         font-family: 'Avenir Black';
         line-height: 90%;
+        padding-left: px;
+        padding-bottom: 30px;
     }
 
    #cv h1 {
@@ -86,7 +90,7 @@ const pageTitle = "bio & cv";
     } 
 
     #cv h3 {
-        font-size: 14px;
+        font-size: 15px;
         margin-bottom: -3px;
         font-family: 'Avenir Black';
     }
@@ -98,6 +102,8 @@ const pageTitle = "bio & cv";
     @media (min-width:1200px) {
   .container {
     grid-template-columns: auto auto;
+    font-size: 12px;
+    padding-right: 60px;
   }
 
   #pagetitle {

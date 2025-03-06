@@ -9,7 +9,20 @@ import Hamburger from './Hamburger.astro';
 </header>
 
 <style>
+@media screen and (min-width: 800px) {
       header {
+        padding-top: 18px;
+        padding-left: 18px;
+        padding-right: 0px;
+        padding-bottom: 18px;
+        font-family: 'Avenir Medium';
+        border: none;
+        width: 580px;
+      }
+      
+}
+
+header {
         padding-top: 18px;
         padding-left: 18px;
         padding-right: 18px;
@@ -17,8 +30,8 @@ import Hamburger from './Hamburger.astro';
         font-family: 'Avenir Medium';
         border: none;
         width: 580px;
-      }
-      
+        }
+
       a {
         color: black;
         font-size: 14px;

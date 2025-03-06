@@ -34,20 +34,22 @@ html {
     color: #fff;
   }
   
-  /* nav styles 
+  /* nav styles  */
   .hamburger {
-    padding-right: 20px;
+    padding-right: 80px;
     cursor: pointer;
+    float: right;
   }
   
   .hamburger .line {
     display: block;
-    width: 40px;
-    height: 5px;
-    margin-bottom: 10px;
-    background-color: #ff9776;
+    width: 20px;
+    height: 2px;
+    margin-bottom: 5px;
+    background-color: #000000;
+    
   }
-  */ 
+  
   .nav-links {
     width: 100%;
     top: 5rem;
@@ -97,7 +99,8 @@ html {
     display: unset;
   }
 
-
+  @media (min-width: 800px) {
+    
     .nav-links {
       display: inline;
       position: static;
@@ -107,14 +110,20 @@ html {
   
     .nav-links a {
       display: inline;
-      padding: 0;
     }
 
     .hamburger {
         display: none;
       }
-
+    }
       
+    .nav-links li {
+      padding-left: 0px;
+      padding-right: 5px;
+      display: inline;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      margin-right: 18px;
   
-
- 
+  }
+  
