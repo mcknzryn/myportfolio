@@ -1,32 +1,34 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+const pageTitle = "bio & cv";
 ---
 
 <BaseLayout>
-<div class="container">
 
+<div class="container">
+    <h1 id="pagetitle">{pageTitle}</h1>
     <div id="bio">
-        <p><b style="font-family: Avenir Heavy;"><i>McKenzie Ryan</i></b> is an emerging artist practicing digital and analog photography. McKenzie is currently studying Visual Arts at the University of California San Diego. Originally from the Midwest, McKenzie began examining ethics and the environment while studying entrepreneurship and geography at the University of Iowa before moving to San Diego. With an emphasis on traces and landscapes, McKenzie's work frequently explores the historical, socio-political, and environmental influence on communities and identities. </p>
+        <p><b style="font-family: Avenir Heavy;"><i>McKenzie Ryan</i></b> is an emerging artist practicing digital and analog photography. McKenzie is currently studying Visual Arts at the University of California San Diego. Originally from the Midwest, McKenzie began examining ethics and the environment while studying entrepreneurship and geography at the University of Iowa before moving to San Diego. With an emphasis on traces and landscapes, McKenzie's work frequently explores the historical, socio-political, and environmental influence on communities and identities.</p>
         <img src="/assets/images/website-headshot.jpeg"/>
    
     </div>
 
     <div id="cv">
-        <h1 id="pagetitle">bio & cv </h1>
+        <h1>bio & cv </h1>
     <ul class="education">
         <li><h3>Education</h3></li>
-        <li>University of California San Diego, 2022-2024</li>
+        <li>University of California San Diego, 2022-2024</li>
         <li>University of Iowa, 2019-2021</li>
     </ul>
 <br>
     <ul class="exhibitions">
         <li><h3>Exhibitions</h3></li>
-        <li>Flora and Fauna Photo Exhibition, Price Center, San Diego, 2024</li>
-        <li>Mixed Media in Studio Exhibition, Adam D. Kamil Gallery, San Diego, 2023</li>
-        <li>Black & White Analog Photo Gallery, Vafhalla Gallery, San Diego, 2023</li>
-        <li>Framing Yosemite Photo Gallery, Green Room, Upland, 2021</li>
-        <li>Baseball Short Film Screening, Phoenix Theater, Iowa, 2018</li>
-        <li>One Band Short Film Screening, Phoenix Theater, Iowa, 2017</li>
+        <li>Flora and Fauna Photo Exhibition, Price Center, San Diego, 2024</li>
+        <li>Mixed Media in Studio Exhibition, Adam D. Kamil Gallery, San Diego, 2023</li>
+        <li>Black & White Analog Photo Gallery, Vafhalla Gallery, San Diego, 2023</li>
+        <li>Framing Yosemite Photo Gallery, Green Room, Upland, 2021</li>
+        <li>Baseball Short Film Screening, Phoenix Theater, Iowa, 2018</li>
+        <li>One Band Short Film Screening, Phoenix Theater, Iowa, 2017</li>
     </ul>
 <br>
     <ul class="awards">
@@ -43,48 +45,44 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         grid-template-columns: auto;
         font-size: 12px;
         font-family: 'Avenir Book';
-        padding-left: 0;
         max-width: 1200px;
+        padding-right: 60px;
     }
 
-    
     #bio p {
         border-style: none;
         text-align: left;
         text-justify: inter-word;
-        width: 450px;
+        max-width: 450px;
     }
 
     img {
         padding-top: 30px;
-        width: 300px;
+        max-width: 30%;
+        min-width: 140px;
     }
 
     #cv {
-        text-align: right;
-        margin-right: 250px;
-        margin-top: 0px;
-        width: 500px;
+        text-align: left;
+        padding-top: 30px;
+        padding-bottom: 60px;
     }
 
     #cv ul {
         list-style:none;
         margin-top: 0px;
+        padding-left: 0px;
+
     }
 
-   #cv h1 {
-        padding-left: 20px;
-        margin-bottom: 65px;
-        margin-top: 190px;
+    #pagetitle {
         font-size: 40px;
         font-family: 'Avenir Black';
         line-height: 90%;
-        text-align: right;
-        /*text-decoration:underline wavy;
-        text-decoration-color: crimson;
-        text-decoration-thickness: 2px;
-        text-underline-offset: -12px;
-        color: ; */
+    }
+
+   #cv h1 {
+        display: none;
     } 
 
     #cv h3 {
@@ -101,10 +99,61 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   .container {
     grid-template-columns: auto auto;
   }
-  #cv {
 
+  #pagetitle {
+        display: none;
+    }
 
-  }
+    #bio p {
+        border-style: none;
+        text-align: left;
+        text-justify: inter-word;
+        width: 450px;
+    }
+
+    img {
+        padding-top: 30px;
+        max-width: 300px;
+    }
+
+    #cv {
+        text-align: right;
+        margin-right: 250px;
+        margin-top: 0px;
+        width: 500px;
+        padding-right: 30px;
+    }
+
+    #cv ul {
+        list-style:none;
+        margin-top: 0px;
+    }
+
+    #cv h1 {
+        padding-left: 20px;
+        margin-bottom: 65px;
+        margin-top: 163px;
+        font-size: 40px;
+        font-family: 'Avenir Black';
+        line-height: 90%;
+        text-align: right;
+        display: inherit;
+        /*text-decoration:underline wavy;
+        text-decoration-color: crimson;
+        text-decoration-thickness: 2px;
+        text-underline-offset: -12px;
+        color: ; */
+    } 
+
+    #cv h3 {
+        font-size: 14px;
+        margin-bottom: -3px;
+        font-family: 'Avenir Black';
+    }
+
+    #cv li {
+        margin-top: 1px;
+    }
 }
 
 </style>
