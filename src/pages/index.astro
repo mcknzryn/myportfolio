@@ -1,8 +1,16 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import { Image } from 'astro:assets';
+import myImportedImage from '../content/albums/europe/7185_Rolleiflex3.5E2_FomapanUltra400_11-positive_preview.jpg';
 const pageTitle = "Home Page";
 ---
 
-<BaseLayout pageTitle={pageTitle}>
-	<h2>My awesome blog subtitle</h2>
+<BaseLayout>
+	<img src="/albums/yosemite-2024/4191_Pentax 67_Ektar 100_3_positive_resize.jpg"/>
 </BaseLayout>
+
+<style>
+	img {
+		width: 20%;
+	}
+</style>

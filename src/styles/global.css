@@ -1,6 +1,6 @@
 html {
     background-color: #ffffff;
-    font-family: 'font-customf2b';
+    font-family: 'Avenir';
   }
   
   body {
@@ -34,7 +34,7 @@ html {
     color: #fff;
   }
   
-  /* nav styles */
+  /* nav styles 
   .hamburger {
     padding-right: 20px;
     cursor: pointer;
@@ -47,12 +47,13 @@ html {
     margin-bottom: 10px;
     background-color: #ff9776;
   }
-  
+  */ 
   .nav-links {
     width: 100%;
     top: 5rem;
     display: none;
     margin: 0;
+    font-family: 'Avenir Medium';
   }
 
   .nav-links ul {
@@ -62,13 +63,14 @@ html {
 
   .nav-links li {
     display: block;
+    margin-bottom: 0;
   }
   
   .nav-links a {
     display: inline;
     text-align: center;
     padding: 10px 0;
-    font-size: 1rem;
+    font-size: 14px;
     text-decoration: none;
     color: black;
     background-color: none;
@@ -77,14 +79,25 @@ html {
   
   .nav-links a:hover,
   .nav-links a:focus {
-    color: rgb(194, 194, 194);
+    text-decoration:line-through wavy;
+    text-decoration-color: crimson;
+    text-decoration-thickness: 2.2px;
+    color: crimson;
+  }
+
+  .nav-links a:active {
+    text-decoration:line-through wavy;
+    text-decoration-color: crimson;
+    text-decoration-thickness: 2.2px;
+    color: crimson;
   }
   
+ 
   .expanded {
     display: unset;
   }
-  
-  @media screen and (min-width: 636px) {
+
+
     .nav-links {
       display: inline;
       position: static;
@@ -100,5 +113,8 @@ html {
     .hamburger {
         display: none;
       }
+
+      
   
-  }
+
+ 
