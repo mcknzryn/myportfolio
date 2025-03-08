@@ -127,3 +127,12 @@ html {
   
   }
   
+  
+  @media (min-width: 1600px) {
+    * {
+      transform: scale(1.04);
+      transform-origin: top left;
+    }
+
+  }
+
