@@ -14,7 +14,7 @@ const pageTitle = "bio & cv";
     </div>
 
     <div id="cv">
-        <h1>bio & cv </h1>
+        <h1>bio & cv</h1>
     <ul class="education">
         <li><h3>Education</h3></li>
         <li>University of California San Diego, 2022-2024</li>
@@ -46,8 +46,8 @@ const pageTitle = "bio & cv";
         font-size: 16px;
         font-family: 'Avenir Book';
         max-width: 1200px;
-        padding-right: 0px;
-        padding-left: 18px;
+        padding-right: 18px;
+        padding-left: 0px;
     }
 
     #bio p {
@@ -105,6 +105,7 @@ const pageTitle = "bio & cv";
     font-size: 12px;
     padding-right: 0px;
     padding-left: 0px;
+    max-width: 1600px;
   }
 
   #pagetitle {
@@ -133,7 +134,7 @@ const pageTitle = "bio & cv";
     #cv ul {
         list-style:none;
         margin-top: 0px;
-        border: solid red;
+        border: none;
     }
 
     #cv h1 {
@@ -150,27 +151,76 @@ const pageTitle = "bio & cv";
         text-decoration-thickness: 2px;
         text-underline-offset: -12px;
         color: ; */
-        border: dashed brown;
+        border: none;
     } 
 
     #cv h3 {
         font-size: 14px;
         margin-bottom: -3px;
         font-family: 'Avenir Black';
-        border: dashed green;
+        border: none;
     }
 
     #cv li {
         margin-top: 1px;
-        border: solid blue;
+        border: none;
     }
 }
 
 @media (min-width: 1600px) {
     #cv {
-        border: dashed plum;
-        text
+        border: none;
+        width: 600px;
+        height: auto;
+        padding-right: 20px;
+        display: block;
+        
     }
+
+    #cv h1 {
+        padding-left: 0px;
+        margin-bottom: 65px;
+        margin-top: 163px;
+        font-size: 40px;
+        font-family: 'Avenir Black';
+        line-height: 90%;
+        /*text-decoration:underline wavy;
+        text-decoration-color: crimson;
+        text-decoration-thickness: 2px;
+        text-underline-offset: -12px;
+        color: ; */
+        border: none;
+        width: 573px;
+    }
+
+    #cv h3 {
+        margin: 0px;
+        font-family: 'Avenir Black';
+        border: none;
+        padding: 0px;
+        width: 529px;
+    }
+
+    #cv li {
+        border: none;
+        width: 550px;
+    }
+
+    #cv ul {
+        padding: 0px;
+        border: none;
+    }
+
+    .container {
+    padding-left: 10px;
+    border: none;
+    max-width: fit-content;
+  }
+
+  #bio {
+    border: none;
+    display: block;
+  }
     
 }
 

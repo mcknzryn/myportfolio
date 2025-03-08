@@ -34,22 +34,24 @@ html {
     color: #fff;
   }
   
-  /* nav styles  */
+  /* nav styles 
   .hamburger {
     padding-left: 5px;
     cursor: pointer;
-    float: right;
+    display: none;
+    justify-content: right;
+    border: solid pink;
   }
   
   .hamburger .line {
-    display: block;
+    display: none;
     width: 20px;
     height: 2px;
     margin-bottom: 5px;
     background-color: #000000;
     
   }
-  
+  */
   .nav-links {
     width: 100%;
     top: 5rem;
@@ -94,10 +96,6 @@ html {
     color: maroon;
   }
   
- 
-  .expanded {
-    display: unset;
-  }
 
   @media (min-width: 800px) {
     
@@ -126,7 +124,30 @@ html {
       margin-right: 18px;
   
   }
+
+  @media (max-width: 800px) {
+    
+    .nav-links {
+      display: inline;
+      position: static;
+      width: auto;
+      background: none;
+    }
   
+    .nav-links a {
+      display: inline;
+    }
+
+    .hamburger {
+        display: none;
+      }
+    }
+      
+    .nav-links li {
+      padding-left: 0px;
+  
+  }
+   
   
   @media (min-width: 1600px) {
     * {
