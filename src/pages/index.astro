@@ -6,11 +6,43 @@ const pageTitle = "Home Page";
 ---
 
 <BaseLayout>
-	<img src="/albums/yosemite-2024/4191_Pentax 67_Ektar 100_3_positive_resize.jpg"/>
+	<div class="slideshow">
+		<img class="mySlides" src="/albums/yosemite-2024/4191_Pentax 67_Ektar 100_3_positive_resize.jpg" alt="Image #1" style="width:100%">
+		<img class="mySlides" src="/albums/yosemite-2024/4191_Pentax 67_Ektar 100_5_positive_resize.jpg" alt="Image #2" style="width:100%">
+		<img class="mySlides" src="/albums/yosemite-2024/4191_Pentax 67_Ektar 100_7_positive_resize.jpg" alt="Image #3" style="width:100%">
+	</div>
 </BaseLayout>
 
 <style>
-	img {
-		width: 20%;
+	.mySlides {display:none;}
+
+	@media (max-width:670px) {
+		
+	}
+
+	@media (min-width:670px) {
+		.slideshow {
+			display:block;
+			min-width: 400px;
+			max-width: 800px;
+			margin-inline: auto;
+		}
 	}
 </style>
+
+<script>
+	var myIndex = 0;
+    carousel();
+    
+    function carousel() {
+      var i;
+      var x = document.getElementsByClassName("mySlides");
+      for (i = 0; i < x.length; i++) {
+        x[i].style.display = "none";  
+      }
+      myIndex++;
+      if (myIndex > x.length) {myIndex = 1}    
+      x[myIndex-1].style.display = "block";  
+      setTimeout(carousel, 2000); // Change image every 2 seconds
+    }
+</script>

@@ -40,6 +40,69 @@ const pageTitle = "bio & cv";
 </BaseLayout>
 
 <style>
+
+@media (max-width:670px) {
+    .container {
+        display: grid;
+        grid-template-columns: auto;
+        font-size: 12px;
+        font-family: 'Avenir Book';
+        padding-right: 18px;
+        padding-left: 0px;
+    }
+
+    #bio p {
+        border-style: none;
+        text-align: left;
+        text-justify: inter-word;
+        max-width: none;
+    }
+
+    img {
+        padding-top: 30px;
+        max-width: 30%;
+        min-width: 140px;
+    }
+
+    #cv {
+        text-align: right;
+        padding-top: 30px;
+        padding-bottom: 60px;
+        max-width: none;
+    }
+
+    #cv ul {
+        list-style:none;
+        margin-top: 0px;
+        padding-left: 0px;
+
+    }
+
+    #pagetitle {
+        font-size: 40px;
+        font-family: 'Avenir Black';
+        line-height: 90%;
+        padding-left: 0px;
+        padding-bottom: 30px;
+    }
+
+   #cv h1 {
+        display: none;
+    } 
+
+    #cv h3 {
+        font-size: 18px;
+        margin-bottom: -3px;
+        font-family: 'Avenir Black';
+    }
+
+    #cv li {
+        margin-top: 1px;
+    }
+
+}
+
+@media (min-width:670px) {
     .container {
         display: grid;
         grid-template-columns: auto;
@@ -98,6 +161,8 @@ const pageTitle = "bio & cv";
     #cv li {
         margin-top: 1px;
     }
+
+}
 
     @media (min-width:1200px) {
   .container {
