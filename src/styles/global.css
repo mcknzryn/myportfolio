@@ -83,17 +83,13 @@ html {
   
   .nav-links a:hover,
   .nav-links a:focus {
-    text-decoration:line-through wavy;
-    text-decoration-color: maroon;
-    text-decoration-thickness: 1.4px;
-    color: maroon;
+    color:fuchsia;
+    font-family: cursive;
   }
 
   .nav-links a:active {
-    text-decoration:line-through wavy;
-    text-decoration-color: maroon;
-    text-decoration-thickness: 2px;
-    color: maroon;
+    color:fuchsia;
+    font-family: cursive;
   }
   
 
