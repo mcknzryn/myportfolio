@@ -4,8 +4,8 @@ import Navigation from './Navigation.astro';
 ---
 
 <header class="header">
-        <a href="/">McKenzie Ryan</a>
-        <a href="mailto:knockknock@mckenzieryan.co">knockkock@mckenzieryan.co</a>
+        <a href="/" class="name">McKenzie Ryan</a>
+        <a href="mailto:knockknock@mckenzieryan.co" class="email">knockkock@mckenzieryan.co</a>
         <Navigation />
 </header>
 
@@ -30,7 +30,7 @@ header {
         padding-bottom: 18px;
         font-family: 'Avenir Medium';
         border: none;
-        width: 580px;
+        width:700px;
         }
 
       a {
@@ -47,13 +47,11 @@ header {
         text-decoration: none;
        }
 
-       a:hover {
-        color:fuchsia;
-        font-family: cursive;
+      .email a:hover {
+        color:rgb(210, 210, 210);
        }
 
        a:active {
         color:fuchsia;
-        font-family: cursive;
        }
 </style>

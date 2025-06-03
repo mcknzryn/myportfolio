@@ -1,0 +1,292 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+const pageTitle = "bio & cv";
+---
+
+<BaseLayout>
+
+<div class="container">
+    <h1 id="pagetitle">{pageTitle}</h1>
+    <div id="bio">
+        <p><b style="font-family: Avenir Heavy;"><i>McKenzie Ryan</i></b> is an emerging artist practicing digital and analog photography. McKenzie is currently studying Visual Arts at the University of California San Diego. Originally from the Midwest, McKenzie began examining ethics and the environment while studying entrepreneurship and geography at the University of Iowa before moving to San Diego. With an emphasis on traces and landscapes, McKenzie's work frequently explores the historical, socio-political, and environmental influence on communities and identities.</p>
+        <img src="/assets/images/website-headshot.jpeg"/>
+   
+    </div>
+
+    <div id="cv">
+        <h1>bio & cv</h1>
+    <ul class="education">
+        <li><h3>Education</h3></li>
+        <li>University of California San Diego, 2022-2024</li>
+        <li>University of Iowa, 2019-2021</li>
+    </ul>
+<br>
+    <ul class="exhibitions">
+        <li><h3>Exhibitions</h3></li>
+        <li>Flora and Fauna Photo Exhibition, Price Center, San Diego, 2024</li>
+        <li>Mixed Media in Studio Exhibition, Adam D. Kamil Gallery, San Diego, 2023</li>
+        <li>Black & White Analog Photo Gallery, Vafhalla Gallery, San Diego, 2023</li>
+        <li>Framing Yosemite Photo Gallery, Green Room, Upland, 2021</li>
+        <li>Baseball Short Film Screening, Phoenix Theater, Iowa, 2018</li>
+        <li>One Band Short Film Screening, Phoenix Theater, Iowa, 2017</li>
+    </ul>
+<br>
+    <ul class="awards">
+        <li><h3>Awards</h3></li>
+        <li>Finalist, Mary Thomas Prappas Ethics Essay Contest, 2021</li>
+    </ul>
+    </div>
+</div>
+</BaseLayout>
+
+<style>
+
+@media (max-width:670px) {
+    .container {
+        display: grid;
+        grid-template-columns: auto;
+        font-size: 12px;
+        font-family: 'Avenir Book';
+        padding-right: 18px;
+        padding-left: 0px;
+    }
+
+    #bio p {
+        border-style: none;
+        text-align: left;
+        text-justify: inter-word;
+        max-width: none;
+    }
+
+    img {
+        padding-top: 30px;
+        max-width: 30%;
+        min-width: 140px;
+    }
+
+    #cv {
+        text-align: right;
+        padding-top: 30px;
+        padding-bottom: 60px;
+        max-width: none;
+    }
+
+    #cv ul {
+        list-style:none;
+        margin-top: 0px;
+        padding-left: 0px;
+
+    }
+
+    #pagetitle {
+        font-size: 40px;
+        font-family: 'Avenir Black';
+        line-height: 90%;
+        padding-left: 0px;
+        padding-bottom: 30px;
+    }
+
+   #cv h1 {
+        display: none;
+    } 
+
+    #cv h3 {
+        font-size: 18px;
+        margin-bottom: -3px;
+        font-family: 'Avenir Black';
+    }
+
+    #cv li {
+        margin-top: 1px;
+    }
+
+}
+
+@media (min-width:670px) {
+    .container {
+        display: grid;
+        grid-template-columns: auto;
+        font-size: 16px;
+        font-family: 'Avenir Book';
+        max-width: 1200px;
+        padding-right: 18px;
+        padding-left: 0px;
+    }
+
+    #bio p {
+        border-style: none;
+        text-align: left;
+        text-justify: inter-word;
+        max-width: none;
+    }
+
+    img {
+        padding-top: 30px;
+        max-width: 30%;
+        min-width: 140px;
+    }
+
+    #cv {
+        text-align: right;
+        padding-top: 30px;
+        padding-bottom: 60px;
+        max-width: none;
+    }
+
+    #cv ul {
+        list-style:none;
+        margin-top: 0px;
+        padding-left: 0px;
+
+    }
+
+    #pagetitle {
+        font-size: 40px;
+        font-family: 'Avenir Black';
+        line-height: 90%;
+        padding-left: 0px;
+        padding-bottom: 30px;
+    }
+
+   #cv h1 {
+        display: none;
+    } 
+
+    #cv h3 {
+        font-size: 18px;
+        margin-bottom: -3px;
+        font-family: 'Avenir Black';
+    }
+
+    #cv li {
+        margin-top: 1px;
+    }
+
+}
+
+    @media (min-width:1200px) {
+  .container {
+    grid-template-columns: auto auto;
+    font-size: 12px;
+    padding-right: 0px;
+    padding-left: 0px;
+    max-width: 1600px;
+  }
+
+  #pagetitle {
+        display: none;
+    }
+
+    #bio p {
+        border-style: none;
+        text-align: left;
+        text-justify: inter-word;
+        width: 450px;
+    }
+
+    img {
+        padding-top: 30px;
+        max-width: 300px;
+    }
+
+    #cv {
+        text-align: right;
+        margin-right: 250px;
+        margin-top: 0px;
+        width: 500px;
+    }
+
+    #cv ul {
+        list-style:none;
+        margin-top: 0px;
+        border: none;
+    }
+
+    #cv h1 {
+        padding-left: 20px;
+        margin-bottom: 65px;
+        margin-top: 163px;
+        font-size: 40px;
+        font-family: 'Avenir Black';
+        line-height: 90%;
+        text-align: right;
+        display: inherit;
+        /*text-decoration:underline wavy;
+        text-decoration-color: crimson;
+        text-decoration-thickness: 2px;
+        text-underline-offset: -12px;
+        color: ; */
+        border: none;
+    } 
+
+    #cv h3 {
+        font-size: 14px;
+        margin-bottom: -3px;
+        font-family: 'Avenir Black';
+        border: none;
+    }
+
+    #cv li {
+        margin-top: 1px;
+        border: none;
+    }
+}
+
+@media (min-width: 1600px) {
+    #cv {
+        border: none;
+        width: 600px;
+        height: auto;
+        padding-right: 20px;
+        display: block;
+        
+    }
+
+    #cv h1 {
+        padding-left: 0px;
+        margin-bottom: 65px;
+        margin-top: 163px;
+        font-size: 40px;
+        font-family: 'Avenir Black';
+        line-height: 90%;
+        /*text-decoration:underline wavy;
+        text-decoration-color: crimson;
+        text-decoration-thickness: 2px;
+        text-underline-offset: -12px;
+        color: ; */
+        border: none;
+        width: 573px;
+    }
+
+    #cv h3 {
+        margin: 0px;
+        font-family: 'Avenir Black';
+        border: none;
+        padding: 0px;
+        width: 529px;
+    }
+
+    #cv li {
+        border: none;
+        width: 550px;
+    }
+
+    #cv ul {
+        padding: 0px;
+        border: none;
+    }
+
+    .container {
+    padding-left: 10px;
+    border: none;
+    max-width: fit-content;
+  }
+
+  #bio {
+    border: none;
+    display: block;
+  }
+    
+}
+
+</style>
