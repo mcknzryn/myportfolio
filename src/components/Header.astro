@@ -4,39 +4,96 @@ import Navigation from './Navigation.astro';
 ---
 
 <header class="header">
-        <a href="/" class="name">McKenzie Ryan</a>
-        <a href="mailto:knockknock@mckenzieryan.co" class="email">knockkock@mckenzieryan.co</a>
-        <Navigation />
+    <div class="top">
+        <a href="/" class="name">mckenzie ryan</a>
+        <div class="nav-links">
+            <a href="/work/">Work</a>
+            <a href="/about/">CV</a>
+            <a href="/contact/">Contact</a>
+        </div>
+        <a href="mailto:knockknock@mckenzieryan.co" class="email">hello@mckenzieryan.co</a>
+    </div>
 </header>
 
 <style>
 @media screen and (min-width: 800px) {
       header {
-        padding-top: 18px;
-        padding-left: 18px;
-        padding-right: 0px;
-        padding-bottom: 18px;
-        font-family: 'Avenir Medium';
+        padding-top: 9px;
+        padding-bottom: 9px;
+        padding-left: 12px;
+        padding-right: 12px;
         border: none;
+        line-height: 14px;
+        font-family: 'Avenir';
+        font-size: 14px;
+        text-transform:uppercase;
         position: relative;
+        width: 100%;
+        
       }
+
+      a {
+        color: black;
+        font-size: 14px;
+        text-decoration: none;
+        width: 20%;
+        float: left;
+        text-align: center;
+      }
+
+
+      a:hover {
+        color:blue;
+      }
+
+      .name {
+        font-family: "Avenir";
+        font-size: 14px;
+        color: black;
+        text-decoration: none;
+        text-align: left;
+
+      }
+
+    
+/*
+      .nav-links {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        float: none;
+
+      }
+*/
+
+      .email {
+        text-decoration: none;
+        text-align: right;
+      }
+
       
 }
 
+/**
+
+.top {
+  float: none;
+  display: block;
+}
+
 header {
-        padding-top: 18px;
-        padding-left: 18px;
-        padding-right: 18px;
-        padding-bottom: 18px;
         font-family: 'Avenir Medium';
         border: none;
-        width:700px;
+        display:block;
+        float: none;
         }
 
       a {
         color: black;
         font-size: 14px;
-        margin-right: 120px;
+        text-decoration: none;
+        
        }
        
        a:link {
@@ -54,4 +111,6 @@ header {
        a:active {
         color:fuchsia;
        }
+ */
+     
 </style>
