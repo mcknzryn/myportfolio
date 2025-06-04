@@ -4,18 +4,17 @@ import Navigation from './Navigation.astro';
 ---
 
 <header class="header">
-    <div class="top">
-        <a href="/" class="name">mckenzie ryan</a>
-        <div class="nav-links">
-            <a href="/work/">Work</a>
-            <a href="/about/">CV</a>
-            <a href="/contact/">Contact</a>
-        </div>
         <a href="mailto:knockknock@mckenzieryan.co" class="email">hello@mckenzieryan.co</a>
     </div>
 </header>
 
 <style>
+
+@media screen and (max-width: 800px) {
+      header {
+       display: none;
+      }
+}
 @media screen and (min-width: 800px) {
       header {
         padding-top: 9px;
@@ -43,7 +42,10 @@ import Navigation from './Navigation.astro';
 
 
       a:hover {
-        color:blue;
+        color:chartreuse;
+        text-decoration:underline;
+        text-decoration-thickness: 1.5px;
+        text-underline-offset: 2px;
       }
 
       .name {
@@ -70,6 +72,7 @@ import Navigation from './Navigation.astro';
       .email {
         text-decoration: none;
         text-align: right;
+        float: right;
       }
 
       

@@ -1,5 +1,6 @@
 ---
 import Social from './Social.astro';
+import Navigation from './Navigation.astro';
 ---
 <!-- 
 <style>
@@ -32,5 +33,132 @@ import Social from './Social.astro';
     <Social platform="youtube" username="@McKenzieRyan" />
     <Social platform="behance" username="mckhoff" />
     </div> -->
+
+<div id="nav-small-screens">
+        <ul class="nav-links-small-screens">
+            <li><a href="/work/">Work</a></li>
+            <li><a href="/about/">CV</a></li>
+            <li><a href="/contact/">Contact</a></li>
+        </ul>
+    </div>
+
+<footer>
+    <div id="nav">
+        <ul class="nav-links">
+            <li><a href="/work/">Work</a></li>
+            <li><a href="/about/">CV</a></li>
+            <li><a href="/contact/">Contact</a></li>
+        </ul>
+    </div>
+    <div class="title">
+        <a href="/">Ryan, McKenzie</a>
+    </div>
 </footer>
+
+<style>
+    @media screen and (min-width: 800px) {
+        footer {
+            position: fixed;
+            left:0;
+            bottom: 0;
+        }
+
+        .nav-links {
+
+        }
+
+        #nav-small-screens {
+            display: none;
+        }
+
+        ul {
+            list-style-type: none;
+            padding-inline-start: 25px;
+        }   
+
+        .title {
+            width: 50%;
+            color: black;
+            font-family: 'Avenir Black';
+            font-size: 90px;
+            line-height: 90px;
+            padding: 20px;
+        }
+
+        a {
+            text-decoration: none;
+            color: black;
+        }
+
+        .nav-links a:hover {
+            color:fuchsia;
+            text-decoration:underline;
+            text-decoration-thickness: 1.5px;
+            text-underline-offset: 2px;
+        }
+
+        .title a:hover {
+            color:blue;
+            text-decoration:underline;
+            text-decoration-thickness: 3px;
+            text-underline-offset: 8px;
+        }
+    }
+
+    @media screen and (max-width: 800px) {
+        footer {
+            position:fixed;
+            left:0;
+            top: 0;
+            padding-top: 70px;
+        }
+
+        .nav-links {
+            display: none;
+        }
+
+        #nav-small-screens {
+            bottom: 0;
+            right: 0;
+            position: fixed;
+            text-align: right;
+            padding-right: 10%;
+            padding-bottom: 30%;
+        }
+
+        ul {
+            list-style-type: none;
+            padding-inline-start: 25px;
+        }   
+
+        .title {
+            width: 50%;
+            color: black;
+            font-family: 'Avenir Black';
+            font-size: 70px;
+            line-height: 70px;
+            padding: 20px;
+        }
+
+        a {
+            text-decoration: none;
+            color: black;
+        }
+
+        #nav-small-screens a:hover {
+            color:fuchsia;
+            text-decoration:underline;
+            text-decoration-thickness: 1.5px;
+            text-underline-offset: 2px;
+        }
+
+        .title a:hover {
+            color:blue;
+            text-decoration:underline;
+            text-decoration-thickness: 3px;
+            text-underline-offset: 8px;
+        }
+    }
+</style>
+
 
