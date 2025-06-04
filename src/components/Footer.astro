@@ -34,131 +34,129 @@ import Navigation from './Navigation.astro';
     <Social platform="behance" username="mckhoff" />
     </div> -->
 
-<div id="nav-small-screens">
-        <ul class="nav-links-small-screens">
-            <li><a href="/work/">Work</a></li>
-            <li><a href="/about/">CV</a></li>
-            <li><a href="/contact/">Contact</a></li>
-        </ul>
-    </div>
-
 <footer>
-    <div id="nav">
-        <ul class="nav-links">
-            <li><a href="/work/">Work</a></li>
-            <li><a href="/about/">CV</a></li>
-            <li><a href="/contact/">Contact</a></li>
-        </ul>
-    </div>
-    <div class="title">
-        <a href="/">Ryan, McKenzie</a>
-    </div>
+<ul class="footer-items">
+    <li class="job-title">photographer | nyc</li>
+    <li><a href="https://www.instagram.com/thisspotstaken/">@instagram</a></li>
+    <li><a href="mailto:knockknock@mckenzieryan.co" class="email">hello@mckenzieryan.co</a></li>
+</ul>
 </footer>
 
 <style>
-    @media screen and (min-width: 800px) {
-        footer {
-            position: fixed;
-            left:0;
-            bottom: 0;
-        }
 
-        .nav-links {
+@media screen and (max-width: 800px) {
+      footer {
+       display: none;
+      }
+}
+@media screen and (min-width: 800px) {
+      footer {
+        bottom: 0;
+        left: 0;
+        line-height: 20px;
+        font-family: 'Avenir';
+        font-size: 12px;
+        text-transform:uppercase;
+        position: fixed;
+        width: 100%;
+        padding: 20px;
+        
+      }
 
-        }
-
-        #nav-small-screens {
-            display: none;
-        }
-
-        ul {
-            list-style-type: none;
-            padding-inline-start: 25px;
-        }   
-
-        .title {
-            width: 50%;
-            color: black;
-            font-family: 'Avenir Black';
-            font-size: 90px;
-            line-height: 90px;
-            padding: 20px;
-        }
-
-        a {
-            text-decoration: none;
-            color: black;
-        }
-
-        .nav-links a:hover {
-            color:fuchsia;
-            text-decoration:underline;
-            text-decoration-thickness: 1.5px;
-            text-underline-offset: 2px;
-        }
-
-        .title a:hover {
-            color:blue;
-            text-decoration:underline;
-            text-decoration-thickness: 3px;
-            text-underline-offset: 8px;
-        }
+    ul {
+        list-style-type: none;
+    }  
+        
+    li {
+        float: left;
+        width: 33.3%;
+        line-height: 20px;
+        font-size: 12px;
+          
     }
 
-    @media screen and (max-width: 800px) {
-        footer {
-            position:fixed;
-            left:0;
-            top: 0;
-            padding-top: 70px;
-        }
+    li a {
+          display: block;
 
-        .nav-links {
-            display: none;
-        }
-
-        #nav-small-screens {
-            bottom: 0;
-            right: 0;
-            position: fixed;
-            text-align: right;
-            padding-right: 10%;
-            padding-bottom: 30%;
-        }
-
-        ul {
-            list-style-type: none;
-            padding-inline-start: 25px;
-        }   
-
-        .title {
-            width: 50%;
-            color: black;
-            font-family: 'Avenir Black';
-            font-size: 70px;
-            line-height: 70px;
-            padding: 20px;
-        }
-
-        a {
-            text-decoration: none;
-            color: black;
-        }
-
-        #nav-small-screens a:hover {
-            color:fuchsia;
-            text-decoration:underline;
-            text-decoration-thickness: 1.5px;
-            text-underline-offset: 2px;
-        }
-
-        .title a:hover {
-            color:blue;
-            text-decoration:underline;
-            text-decoration-thickness: 3px;
-            text-underline-offset: 8px;
-        }
     }
+
+      a {
+        color: black;
+        text-decoration: none;
+        float: left;
+        text-align: center;
+      }
+
+
+      a:hover {
+        color:chartreuse;
+        text-decoration:underline;
+        text-decoration-thickness: 1.5px;
+        text-underline-offset: 2px;
+      }
+}
+
+    
+/*
+      .nav-links {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        float: none;
+
+      }
+
+*/
+
+    .job-title {
+        text-align: left;
+    }
+      .email {
+        text-decoration: none;
+        text-align: right;
+        float: right;
+      }
+
+      
+}
+
+/**
+
+.top {
+  float: none;
+  display: block;
+}
+
+header {
+        font-family: 'Avenir Medium';
+        border: none;
+        display:block;
+        float: none;
+        }
+
+      a {
+        color: black;
+        font-size: 14px;
+        text-decoration: none;
+        
+       }
+       
+       a:link {
+        text-decoration: none;
+       } 
+
+       a:visited {
+        text-decoration: none;
+       }
+
+      .email a:hover {
+        color:rgb(210, 210, 210);
+       }
+
+       a:active {
+        color:fuchsia;
+       }
+ */
+     
 </style>
-
-

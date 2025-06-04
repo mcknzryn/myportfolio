@@ -3,117 +3,154 @@ import Hamburger from './Hamburger.astro';
 import Navigation from './Navigation.astro';
 ---
 
-<header class="header">
-        <a href="mailto:knockknock@mckenzieryan.co" class="email">hello@mckenzieryan.co</a>
+
+
+<div id="nav-small-screens">
+        <ul class="nav-links-small-screens">
+            <li><a href="/work/">Work</a></li>
+            <li><a href="/about/">CV</a></li>
+            <li><a href="/contact/">Contact</a></li>
+        </ul>
+</div>
+
+<header>
+        <div id="nav">
+        <ul class="nav-links">
+          <li class="title"><a href="/">McKenzie Ryan</a></li>
+            <li><a href="/work/">WORK</a></li>
+            <li><a href="/about/">CV</a></li>
+            <li><a href="/contact/">CONTACT</a></li>
+        </ul>
+    </div>
+
+
     </div>
 </header>
 
+
 <style>
-
-@media screen and (max-width: 800px) {
-      header {
-       display: none;
-      }
-}
-@media screen and (min-width: 800px) {
-      header {
-        padding-top: 9px;
-        padding-bottom: 9px;
-        padding-left: 12px;
-        padding-right: 12px;
-        border: none;
-        line-height: 14px;
-        font-family: 'Avenir';
-        font-size: 14px;
-        text-transform:uppercase;
-        position: relative;
-        width: 100%;
-        
-      }
-
-      a {
-        color: black;
-        font-size: 14px;
-        text-decoration: none;
-        width: 20%;
-        float: left;
-        text-align: center;
-      }
-
-
-      a:hover {
-        color:chartreuse;
-        text-decoration:underline;
-        text-decoration-thickness: 1.5px;
-        text-underline-offset: 2px;
-      }
-
-      .name {
-        font-family: "Avenir";
-        font-size: 14px;
-        color: black;
-        text-decoration: none;
-        text-align: left;
-
-      }
-
-    
-/*
-      .nav-links {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        float: none;
-
-      }
-*/
-
-      .email {
-        text-decoration: none;
-        text-align: right;
-        float: right;
-      }
-
-      
-}
-
-/**
-
-.top {
-  float: none;
-  display: block;
-}
-
-header {
-        font-family: 'Avenir Medium';
-        border: none;
-        display:block;
-        float: none;
+    @media screen and (min-width: 800px) {
+        header {
+            position: fixed;
+            left:0;
+            top: 0;
+            width: 100%;
+            padding-bottom: 20px;
         }
 
-      a {
-        color: black;
-        font-size: 14px;
-        text-decoration: none;
+        .nav-links {
+
+        }
+
+        #nav-small-screens {
+            display: none;
+        }
+
+        ul {
+            list-style-type: none;
+        }  
         
-       }
-       
-       a:link {
-        text-decoration: none;
-       } 
+        li {
+          float: left;
+          width: 25%;
+          line-height: 20px;
+          text-align: right;
+          font-size: 12px;
+          padding-right: 20px;
+          
+        }
 
-       a:visited {
-        text-decoration: none;
-       }
+        li a {
+          display: block;
 
-      .email a:hover {
-        color:rgb(210, 210, 210);
-       }
+        }
 
-       a:active {
-        color:fuchsia;
-       }
- */
-     
+        .title {
+            color: black;
+            font-family: 'Avenir Black';
+            font-size: 20px;
+            line-height: 20px;
+            letter-spacing: -1px;
+            text-align: left;
+            
+
+        }
+
+        a {
+            text-decoration: none;
+            color: black;
+        }
+
+        .nav-links a:hover {
+            color:fuchsia;
+            text-decoration:underline;
+            text-decoration-thickness: 1.5px;
+            text-underline-offset: 2px;
+        }
+
+        .title a:hover {
+            color:blue;
+            text-decoration:underline;
+            text-decoration-thickness: 2px;
+            text-underline-offset: 2px;
+        }
+    }
+
+    /*
+    @media screen and (max-width: 800px) {
+        header {
+            position:fixed;
+            left:0;
+            top: 0;
+            padding-top: 70px;
+        }
+
+        .nav-links {
+            display: none;
+        }
+
+        #nav-small-screens {
+            bottom: 0;
+            right: 0;
+            position: fixed;
+            text-align: right;
+            padding-right: 10%;
+            padding-bottom: 30%;
+        }
+
+        ul {
+            list-style-type: none;
+            padding-inline-start: 25px;
+        }   
+
+        .title {
+            width: 50%;
+            color: black;
+            font-family: 'Avenir Black';
+            font-size: 70px;
+            line-height: 70px;
+            padding: 20px;
+        }
+
+        a {
+            text-decoration: none;
+            color: black;
+        }
+
+        #nav-small-screens a:hover {
+            color:fuchsia;
+            text-decoration:underline;
+            text-decoration-thickness: 1.5px;
+            text-underline-offset: 2px;
+        }
+
+        .title a:hover {
+            color:blue;
+            text-decoration:underline;
+            text-decoration-thickness: 3px;
+            text-underline-offset: 8px;
+        }
+    } */
 </style>
+
+
