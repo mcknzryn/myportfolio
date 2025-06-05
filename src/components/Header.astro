@@ -6,7 +6,8 @@ import Navigation from './Navigation.astro';
 
 
 <div id="nav-small-screens">
-        <ul class="nav-links-small-screens">
+        <ul>
+            <a href="/" class="title-small-screens">McKenzie <br> Ryan</a>
             <li><a href="/work/">Work</a></li>
             <li><a href="/about/">CV</a></li>
             <li><a href="/contact/">Contact</a></li>
@@ -56,7 +57,7 @@ import Navigation from './Navigation.astro';
           line-height: 20px;
           text-align: right;
           font-size: 12px;
-          padding-right: 20px;
+          padding-right: 30px;
           
         }
 
@@ -96,42 +97,43 @@ import Navigation from './Navigation.astro';
         }
     }
 
-    /*
+ 
     @media screen and (max-width: 800px) {
-        header {
-            position:fixed;
-            left:0;
-            top: 0;
-            padding-top: 70px;
-        }
 
         .nav-links {
             display: none;
         }
 
         #nav-small-screens {
-            bottom: 0;
+            top: 0;
+            position: sticky;
             right: 0;
-            position: fixed;
             text-align: right;
-            padding-right: 10%;
-            padding-bottom: 30%;
+            padding-top: 1%;
+            padding-bottom: 1%;
+            width: 100%;
+            background-color: white;
+            border-bottom: solid;
         }
 
         ul {
             list-style-type: none;
-            padding-inline-start: 25px;
-        }   
-
-        .title {
-            width: 50%;
+            padding: 0;
+  
+        } 
+        
+        .title-small-screens {
             color: black;
             font-family: 'Avenir Black';
-            font-size: 70px;
-            line-height: 70px;
-            padding: 20px;
+            font-size: 30px;
+            line-height: 30px;
+            letter-spacing: -1px;
+            text-align: left;
+            float:left;
+
         }
 
+ 
         a {
             text-decoration: none;
             color: black;
@@ -144,13 +146,13 @@ import Navigation from './Navigation.astro';
             text-underline-offset: 2px;
         }
 
-        .title a:hover {
+        .title-small-screens a:hover {
             color:blue;
             text-decoration:underline;
             text-decoration-thickness: 3px;
             text-underline-offset: 8px;
         }
-    } */
+    } 
 </style>
 
 
