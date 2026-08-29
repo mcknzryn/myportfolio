@@ -1,14 +1,242 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-const pageTitle = "Work and Examples";
+
+const pageTitle = "Work";
+
+const gallery = [
+  {
+    src: "/albums/yosemite-2024/4191_Pentax%2067_Ektar%20100_10_positive_resize.jpg",
+    alt: "A surfer walking across open sand with a long surfboard in hand.",
+    caption: "Yosemite / Ektar 100 / 2024",
+    span: "gallery-item--large gallery-item--offset"
+  },
+  {
+    src: "/albums/yosemite-2024/4191_Pentax%2067_Ektar%20100_3_positive_resize.jpg",
+    alt: "A figure standing in a landscape with a surfboard held upright.",
+    caption: "Selected frame / analog still",
+    span: "gallery-item--tall"
+  },
+  {
+    src: "/albums/yosemite-2024/4191_Pentax%2067_Ektar%20100_5_positive_resize.jpg",
+    alt: "A surfer descending a steep slope near the shoreline.",
+    caption: "Field study / coastal motion",
+    span: "gallery-item--wide"
+  },
+  {
+    src: "/albums/yosemite-2024/4191_Pentax%2067_Ektar%20100_7_positive_resize.jpg",
+    alt: "A surfer balancing through breaking water with motion blur.",
+    caption: "Movement / sequence / tide",
+    span: "gallery-item--portrait"
+  },
+  {
+    src: "/albums/yosemite-2024/4191_Pentax%2067_Ektar%20100_8_positive_resize.jpg",
+    alt: "A wide landscape view with a surfer small in the frame near the waterline.",
+    caption: "Landscape / distance / trace",
+    span: "gallery-item--wide gallery-item--final"
+  }
+];
 ---
 
-<BaseLayout pageTitle={pageTitle}>
+<BaseLayout pageTitle={pageTitle} hidePageTitle={true}>
+  <main class="work-page">
+    <section class="intro">
+      <p class="eyebrow">Selected Work</p>
+      <h1>Work</h1>
+      <p class="lede">
+        An editorial gallery of analog images and moving-field studies, arranged like a spread and paced for a long vertical scroll.
+      </p>
+    </section>
 
-        <p>I work in photography, graphic design, videography, and some light coding!</p>
+    <section class="gallery" aria-label="Selected photography gallery">
+      {gallery.map((item) => (
+        <figure class={`gallery-item ${item.span}`}>
+          <div class="frame">
+            <img src={item.src} alt={item.alt} loading="lazy" decoding="async" />
+          </div>
+          <figcaption>{item.caption}</figcaption>
+        </figure>
+      ))}
+    </section>
 
-        <div>
-            <h3>Film Photography</h3>
-            <img src="https://cdn.myportfolio.com/185f8eaf-b422-4b1d-9aaf-02b71649f7f0/8a906464-8d10-457c-922f-06f1cf00ae64_rw_1920.JPG?h=fdd007fe76f94e0b1ff79dc4fde2a576" style="width:50%; height:50%"/>
-        </div>
+    <section class="closing-note">
+      <p>
+        More photographs and series can be added here as the archive grows. The layout is designed to accept larger bodies of work without losing the magazine-like rhythm.
+      </p>
+    </section>
+  </main>
 </BaseLayout>
+
+<style>
+  .work-page {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 3rem 0 5rem;
+  }
+
+  .intro {
+    display: grid;
+    gap: 0.75rem;
+    margin-bottom: 2.5rem;
+    max-width: 44rem;
+  }
+
+  .eyebrow {
+    margin: 0;
+    font-family: "Avenir Medium";
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+  }
+
+  .intro h1 {
+    margin: 0;
+    font-family: "Avenir Black";
+    font-size: clamp(2.5rem, 4vw, 5rem);
+    line-height: 0.94;
+    letter-spacing: -0.06em;
+  }
+
+  .lede {
+    margin: 0;
+    max-width: 34rem;
+    font-family: "Avenir Book";
+    font-size: clamp(1rem, 1.4vw, 1.15rem);
+    line-height: 1.55;
+  }
+
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 1.5rem 1.5rem;
+    align-items: start;
+  }
+
+  .gallery-item {
+    margin: 0;
+    display: grid;
+    gap: 0.6rem;
+  }
+
+  .frame {
+    overflow: hidden;
+    background: #f2f2f2;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08);
+  }
+
+  .frame img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 320ms ease, opacity 320ms ease;
+  }
+
+  .gallery-item:hover img {
+    transform: scale(1.015);
+  }
+
+  figcaption {
+    font-family: "Avenir Book";
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(0, 0, 0, 0.72);
+  }
+
+  .gallery-item--large {
+    grid-column: 1 / span 7;
+  }
+
+  .gallery-item--offset {
+    margin-top: 1.8rem;
+  }
+
+  .gallery-item--tall {
+    grid-column: 8 / span 5;
+    margin-top: 7rem;
+  }
+
+  .gallery-item--wide {
+    grid-column: 1 / span 8;
+    margin-top: 0.5rem;
+  }
+
+  .gallery-item--portrait {
+    grid-column: 9 / span 4;
+    margin-top: -2rem;
+  }
+
+  .gallery-item--final {
+    grid-column: 3 / span 8;
+    margin-top: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .gallery-item--large .frame {
+    aspect-ratio: 0.86 / 1;
+  }
+
+  .gallery-item--tall .frame {
+    aspect-ratio: 0.82 / 1;
+  }
+
+  .gallery-item--wide .frame {
+    aspect-ratio: 1.45 / 1;
+  }
+
+  .gallery-item--portrait .frame {
+    aspect-ratio: 0.88 / 1.1;
+  }
+
+  .gallery-item--final .frame {
+    aspect-ratio: 1.55 / 1;
+  }
+
+  .closing-note {
+    margin-top: 2rem;
+    max-width: 30rem;
+    margin-left: auto;
+    font-family: "Avenir Book";
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: rgba(0, 0, 0, 0.82);
+  }
+
+  @media (max-width: 900px) {
+    .work-page {
+      padding-top: 1.5rem;
+    }
+
+    .gallery {
+      grid-template-columns: 1fr;
+      gap: 1.75rem;
+    }
+
+    .gallery-item,
+    .gallery-item--large,
+    .gallery-item--tall,
+    .gallery-item--wide,
+    .gallery-item--portrait,
+    .gallery-item--final {
+      grid-column: auto;
+      margin-top: 0;
+      margin-bottom: 0;
+    }
+
+    .gallery-item--large .frame,
+    .gallery-item--tall .frame,
+    .gallery-item--wide .frame,
+    .gallery-item--portrait .frame,
+    .gallery-item--final .frame {
+      aspect-ratio: 4 / 5;
+    }
+
+    .intro {
+      margin-bottom: 1.75rem;
+    }
+
+    .closing-note {
+      margin-top: 1.75rem;
+    }
+  }
+</style>
