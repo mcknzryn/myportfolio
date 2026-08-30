@@ -29,7 +29,7 @@ const gallery = Object.entries(imageModules)
           <Image
             src={item.image}
             alt={item.alt}
-            sizes="(max-width: 600px) 92vw, (max-width: 900px) 46vw, 30vw"
+            sizes="(max-width: 600px) 92vw, (max-width: 900px) 46vw, 25vw"
             loading="lazy"
           />
         </figure>
@@ -41,14 +41,15 @@ const gallery = Object.entries(imageModules)
 
 <style>
   .work-page {
-    max-width: 1120px;
+    width: 100%;
+    max-width: 1440px;
     margin: 0 auto;
     padding: 4.5rem 1.5rem 5rem;
   }
 
   .gallery {
-    column-count: 3;
-    column-gap: 1.25rem;
+    column-count: 4;
+    column-gap: clamp(1.5rem, 3vw, 2.5rem);
   }
 
   .gallery-item {
@@ -57,7 +58,7 @@ const gallery = Object.entries(imageModules)
     overflow: hidden;
     background: #f2f2f2;
     break-inside: avoid;
-    margin-bottom: 1.25rem;
+    margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
   }
 
   .gallery-item :global(img) {
@@ -78,11 +79,11 @@ const gallery = Object.entries(imageModules)
 
     .gallery {
       column-count: 2;
-      column-gap: 1rem;
+      column-gap: 1.5rem;
     }
 
     .gallery-item {
-      margin-bottom: 1rem;
+      margin-bottom: 1.5rem;
     }
   }
 
@@ -93,6 +94,10 @@ const gallery = Object.entries(imageModules)
 
     .gallery {
       column-count: 1;
+    }
+
+    .gallery-item {
+      margin-bottom: 1.25rem;
     }
   }
 </style>
