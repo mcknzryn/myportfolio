@@ -2,27 +2,20 @@
 import BaseLayout from "./BaseLayout.astro";
 import { Image } from "astro:assets";
 import type { ImageMetadata } from "astro";
-import { galleryOrder } from "../data/work-gallery";
 
 const imageModules = import.meta.glob<{ default: ImageMetadata }>(
-  "../assets/work/*.{jpg,JPG,jpeg,JPEG,png,PNG,webp,WEBP,avif,AVIF}",
+  "../assets/slideshow/*.{jpg,JPG,jpeg,JPEG,png,PNG,webp,WEBP,avif,AVIF}",
   { eager: true },
 );
 
-const imagesById = new Map(
-  Object.entries(imageModules).map(([path, module]) => {
-    const id = path.split("/").pop()?.replace(/\.[^.]+$/, "") ?? "";
-    return [id, { image: module.default, alt: id.replace(/[-_]/g, " ") }];
-  }),
-);
+const gallery = Object.entries(imageModules)
+  .sort(([first], [second]) => first.localeCompare(second))
+  .map(([path, module]) => {
+    const filename = path.split("/").pop()?.replace(/\.[^.]+$/, "") ?? "";
+    const alt = filename.replace(/[-_]/g, " ");
 
-const allImageIds = [...imagesById.keys()].sort((first, second) => first.localeCompare(second));
-const orderedImageIds = [
-  ...galleryOrder.filter((id) => imagesById.has(id)),
-  ...allImageIds.filter((id) => !galleryOrder.includes(id)),
-];
-
-const gallery = orderedImageIds.map((id) => ({ id, ...imagesById.get(id)! }));
+    return { image: module.default, alt };
+  });
 
 const pageTitle = "Home Page";
 ---
@@ -168,6 +161,7 @@ const pageTitle = "Home Page";
     let touchStartX = 0;
 
     const showSlide = (nextIndex: number) => {
+      if (slides.length === 0) return;
       currentIndex = (nextIndex + slides.length) % slides.length;
       slides.forEach((slide, index) => slide.classList.toggle("active", index === currentIndex));
     };
