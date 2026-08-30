@@ -16,6 +16,11 @@ const galleryOrder = [
   "29", "18", "26", "09", "22", "11", "32", "14", "12", "99", "13", "10", "06", "17", "15", "31", "01", "28", "02", "00", "16", "24", "30", "25", "23", "20"
 ];
 
+// Arrange mode keeps these images at the front when randomized. New images
+// are non-favorites until they are explicitly marked in Arrange mode.
+const galleryFavorites = [];
+const galleryPinned = [];
+
 const imagesById = new Map(
   Object.entries(imageModules).map(([path, module]) => {
     const id = path.split("/").pop()?.replace(/\.[^.]+$/, "") ?? "";
@@ -35,7 +40,12 @@ const gallery = orderedImageIds.map((id) => ({ id, ...imagesById.get(id)! }));
 <BaseLayout pageTitle={pageTitle} hidePageTitle={true}>
   <main class="work-page">
 
-    <section class="gallery" aria-label="Selected photography gallery">
+    <section
+      class="gallery"
+      aria-label="Selected photography gallery"
+      data-gallery-favorites={JSON.stringify(galleryFavorites)}
+      data-gallery-pinned={JSON.stringify(galleryPinned)}
+    >
       {gallery.map((item) => (
         <figure class="gallery-item" data-image-id={item.id}>
           <Image
@@ -104,6 +114,74 @@ const gallery = orderedImageIds.map((id) => ({ id, ...imagesById.get(id)! }));
     gap: 0.75rem;
     margin: 0 0 1.5rem;
     font-size: 0.875rem;
+  }
+
+  :global(.arrange-favorite-button) {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    z-index: 1;
+    width: 2rem;
+    height: 2rem;
+    border: 1px solid #000;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    color: #000;
+    font: 1.25rem/1 sans-serif;
+    cursor: pointer;
+  }
+
+  :global(.arrange-favorite-button.is-active) {
+    background: #000;
+    color: #fff;
+  }
+
+  :global(.arrange-favorite-button:hover) {
+    background: #000;
+    color: #fff;
+  }
+
+  :global(.arrange-pin-button) {
+    position: absolute;
+    top: 0.5rem;
+    left: 0.5rem;
+    z-index: 1;
+    width: 2rem;
+    height: 2rem;
+    border: 1px solid #000;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    color: #000;
+    font: 1rem/1 sans-serif;
+    cursor: pointer;
+  }
+
+  :global(.arrange-pin-button.is-active) {
+    background: #000;
+    color: #fff;
+  }
+
+  :global(.arrange-pin-button:hover) {
+    background: #000;
+    color: #fff;
+  }
+
+  :global(.gallery.is-overview) {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
+    gap: 0.75rem;
+    column-count: initial;
+  }
+
+  :global(.gallery.is-overview) .gallery-item {
+    aspect-ratio: 1 / 1;
+    margin: 0;
+  }
+
+  :global(.gallery.is-overview) .gallery-item :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
 
   :global(.arrange-toolbar button) {
