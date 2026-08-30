@@ -1,36 +1,237 @@
 ---
-import BaseLayout from "../layouts/BaseLayout.astro";
-const pageTitle = "home page";
+import BaseLayout from "./BaseLayout.astro";
+import { Image } from "astro:assets";
+import type { ImageMetadata } from "astro";
+
+const imageModules = import.meta.glob<{ default: ImageMetadata }>(
+  "../assets/work/*.{jpg,JPG,jpeg,JPEG,png,PNG,webp,WEBP,avif,AVIF}",
+  { eager: true },
+);
+
+const gallery = Object.entries(imageModules)
+  .sort(([first], [second]) => first.localeCompare(second))
+  .map(([path, module]) => {
+    const filename = path.split("/").pop()?.replace(/\.[^.]+$/, "") ?? "";
+    const alt = filename.replace(/[-_]/g, " ");
+
+    return { image: module.default, alt };
+  });
+
+const pageTitle = "Home Page";
 ---
 
-<BaseLayout>
-	<body></body>
+<BaseLayout pageTitle={pageTitle} hidePageTitle={true}>
+  <main class="home-gallery" aria-label="Photography slideshow">
+    <div class="gallery-stage" tabindex="0">
+      {gallery.map((item, index) => (
+        <figure class:list={["slide", { active: index === 0 }]}>
+          <Image
+            src={item.image}
+            alt={item.alt}
+            sizes="(max-width: 700px) 88vw, 700px"
+            loading={index === 0 ? "eager" : "lazy"}
+          />
+        </figure>
+      ))}
+
+      <button class="gallery-control previous" type="button" aria-label="Previous image">
+        <span aria-hidden="true">‹</span>
+      </button>
+      <button class="gallery-control next" type="button" aria-label="Next image">
+        <span aria-hidden="true">›</span>
+      </button>
+    </div>
+  </main>
 </BaseLayout>
 
+<style>
+  .home-gallery {
+    height: calc(100svh - 8rem);
+    min-height: 0;
+    display: grid;
+    place-items: center;
+    padding: 1rem 1.5rem;
+  }
 
-<style> 
+  :global(body) {
+    overflow: hidden;
+  }
 
-@media (max-width:670px) {
-	body {
-		min-height: 100vh;
-		width: 100%;
-		background-color: ;
-		background-image: url("/assets/images/website-1.gif");
-		background-position: center;
-		background-repeat: no-repeat;
-		background-size: 100%;
-	}
-}
+  .gallery-stage {
+    position: relative;
+    width: min(100%, 1000px);
+    height: min(76svh, 820px);
+    display: grid;
+    place-items: center;
+    outline: none;
+  }
 
-@media (min-width:670px) {
-	body {
-		min-height: 100vh;
-		width: 100%;
-		background-color: ;
-		background-image: url("/assets/images/website-large-3.gif");
-		background-position: center;
-		background-repeat: no-repeat;
-		background-size:100%;
-	}
-} 
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    margin: 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 450ms ease;
+  }
+
+  .slide.active {
+    opacity: 1;
+  }
+
+  .slide :global(img) {
+    display: block;
+    max-width: min(700px, calc(100vw - 10rem));
+    max-height: calc(100svh - 10rem);
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+
+  .gallery-control {
+    position: absolute;
+    top: 50%;
+    z-index: 2;
+    width: 2.5rem;
+    height: 3rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #111;
+    font: 2rem/1 Arial, sans-serif;
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(-50%);
+    transition: opacity 220ms ease;
+  }
+
+  .gallery-control span {
+    display: block;
+    transform: translateY(-2px);
+  }
+
+  .gallery-control.previous {
+    left: 8%;
+  }
+
+  .gallery-control.next {
+    right: 8%;
+  }
+
+  .gallery-stage:hover .gallery-control,
+  .gallery-stage:focus-within .gallery-control {
+    opacity: 1;
+  }
+
+  .gallery-control:hover,
+  .gallery-control:focus-visible {
+    opacity: 0.55;
+  }
+
+  .gallery-control:focus-visible {
+    outline: 1px solid currentColor;
+    outline-offset: 4px;
+  }
+
+  @media (max-width: 700px) {
+    .home-gallery {
+      height: calc(100svh - 8rem);
+      padding: 1rem 0 2rem;
+    }
+
+    .gallery-stage {
+      width: 100%;
+      height: min(68svh, 620px);
+    }
+
+    .slide :global(img) {
+      max-width: 88vw;
+      max-height: calc(100svh - 11rem);
+    }
+
+    .gallery-control.previous {
+      left: 0;
+    }
+
+    .gallery-control.next {
+      right: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .slide,
+    .gallery-control {
+      transition: none;
+    }
+  }
 </style>
+
+<script>
+  const stage = document.querySelector<HTMLElement>(".gallery-stage");
+
+  if (stage) {
+    const slides = Array.from(stage.querySelectorAll<HTMLElement>(".slide"));
+    const previousButton = stage.querySelector<HTMLButtonElement>(".previous");
+    const nextButton = stage.querySelector<HTMLButtonElement>(".next");
+    let currentIndex = slides.findIndex((slide) => slide.classList.contains("active"));
+    let autoplay: number | undefined;
+    let touchStartX = 0;
+
+    const showSlide = (nextIndex: number) => {
+      currentIndex = (nextIndex + slides.length) % slides.length;
+      slides.forEach((slide, index) => slide.classList.toggle("active", index === currentIndex));
+    };
+
+    const startAutoplay = () => {
+      if (slides.length > 1 && autoplay === undefined) {
+        autoplay = window.setInterval(() => showSlide(currentIndex + 1), 5000);
+      }
+    };
+
+    const stopAutoplay = () => {
+      if (autoplay !== undefined) {
+        window.clearInterval(autoplay);
+        autoplay = undefined;
+      }
+    };
+
+    previousButton?.addEventListener("click", () => showSlide(currentIndex - 1));
+    nextButton?.addEventListener("click", () => showSlide(currentIndex + 1));
+
+    stage.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        showSlide(currentIndex - 1);
+      }
+
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        showSlide(currentIndex + 1);
+      }
+    });
+
+    stage.addEventListener("mouseenter", stopAutoplay);
+    stage.addEventListener("mouseleave", startAutoplay);
+    stage.addEventListener("focusin", stopAutoplay);
+    stage.addEventListener("focusout", (event) => {
+      if (!stage.contains(event.relatedTarget as Node | null)) startAutoplay();
+    });
+
+    stage.addEventListener("touchstart", (event) => {
+      touchStartX = event.changedTouches[0]?.clientX ?? 0;
+      stopAutoplay();
+    }, { passive: true });
+
+    stage.addEventListener("touchend", (event) => {
+      const touchEndX = event.changedTouches[0]?.clientX ?? touchStartX;
+      const distance = touchEndX - touchStartX;
+
+      if (Math.abs(distance) > 40) showSlide(currentIndex + (distance < 0 ? 1 : -1));
+      startAutoplay();
+    }, { passive: true });
+
+    startAutoplay();
+  }
+</script>
