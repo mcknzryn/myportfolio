@@ -20,7 +20,7 @@ const gallery = Object.entries(imageModules)
 const pageTitle = "Home Page";
 ---
 
-<BaseLayout pageTitle={pageTitle} hidePageTitle={true}>
+<BaseLayout pageTitle={pageTitle} hidePageTitle={true} bodyClass="home-page">
   <main class="home-gallery" aria-label="Photography slideshow">
     <div class="gallery-stage" tabindex="0">
       {gallery.map((item, index) => (
@@ -51,10 +51,6 @@ const pageTitle = "Home Page";
     display: grid;
     place-items: center;
     padding: 0 1.5rem 4rem;
-  }
-
-  :global(body) {
-    overflow: hidden;
   }
 
   .gallery-stage {

@@ -9,7 +9,7 @@ const pageTitle = "bio & cv";
     <h1 id="pagetitle">{pageTitle}</h1>
     <div id="bio">
         <p><b style="font-family: Avenir Heavy;"><i>McKenzie Ryan</i></b> is an emerging artist practicing digital and analog photography. McKenzie is currently studying Visual Arts at the University of California San Diego. Originally from the Midwest, McKenzie began examining ethics and the environment while studying entrepreneurship and geography at the University of Iowa before moving to San Diego. With an emphasis on traces and landscapes, McKenzie's work frequently explores the historical, socio-political, and environmental influence on communities and identities.</p>
-        <img src="/assets/images/website-headshot.jpeg"/>
+        <img src="/assets/images/website-headshot.jpeg" alt="McKenzie Ryan" />
    
     </div>
 
@@ -48,13 +48,16 @@ const pageTitle = "bio & cv";
     max-width: 1600px;
     margin: 0 auto;
     padding: 0 1rem 3.75rem 0;
-    font-family: 'Avenir Book';
+    font-family: inherit;
     font-size: clamp(0.875rem, 1.2vw, 1rem);
   }
 
   #pagetitle {
     margin: 0;
     padding: 0 0 1.75rem;
+    width: 100%;
+    max-width: 100%;
+    white-space: normal;
     font-family: 'Avenir Black';
     font-size: clamp(1.75rem, 5vw, 2.5rem);
     line-height: 0.9;
@@ -73,8 +76,7 @@ const pageTitle = "bio & cv";
 
   #bio img {
     display: block;
-    width: 100%;
-    max-width: 300px;
+    width: min(100%, 300px);
     height: auto;
     margin-top: 1.875rem;
   }
@@ -130,6 +132,26 @@ const pageTitle = "bio & cv";
       padding-top: clamp(1rem, 8vw, 10rem);
       text-align: right;
     }
+  }
+
+  @media (max-width: 767px) {
+    .container {
+      gap: 1.5rem;
+      padding-right: 0;
+      padding-bottom: 2rem;
+    }
+
+    #bio img {
+      margin-top: 1.25rem;
+    }
+
+    #cv {
+      padding-bottom: 0;
+    }
+  }
+
+  @media (min-width: 768px) and (max-width: 1199px) {
+    .container { padding-top: 2rem; }
   }
 
   @media (min-width: 1200px) {

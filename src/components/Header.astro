@@ -1,155 +1,128 @@
----
-import Hamburger from './Hamburger.astro';
-import Navigation from './Navigation.astro';
----
-
-
-
-<div id="nav-small-screens">
-        <ul>
-            <a href="/" class="title-small-screens">McKenzie <br> Ryan</a>
-            <li><a href="/work/">Work</a></li>
-            <li><a href="/about/">CV</a></li>
-            <li><a href="/contact/">Contact</a></li>
-        </ul>
-</div>
-
-<header>
-        <div id="nav">
-        <ul class="nav-links">
-          <li class="title"><a href="/">McKenzie Ryan</a></li>
-            <li><a href="/work/">WORK</a></li>
-            <li><a href="/about/">CV</a></li>
-            <li><a href="/contact/">CONTACT</a></li>
-        </ul>
-    </div>
+<header class="site-header">
+  <a href="/" class="site-title">McKenzie <span class="mobile-break"><br /></span>Ryan</a>
+  <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-navigation">
+    <span class="menu-toggle-label">Menu</span>
+    <span class="menu-toggle-icon" aria-hidden="true"><i></i><i></i><i></i></span>
+  </button>
+  <nav id="site-navigation" class="site-navigation" aria-label="Main navigation">
+    <a href="/work/">WORK</a>
+    <a href="/about/">CV</a>
+    <a href="/contact/">CONTACT</a>
+  </nav>
 </header>
 
-
 <style>
-    @media screen and (min-width: 800px) {
-        header {
-            position: fixed;
-            left:0;
-            top: 0;
-            width: 100%;
-            padding-bottom: 20px;
-        }
+  .site-header {
+    position: fixed;
+    z-index: 10;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 20px var(--chrome-gutter);
+    color: #000;
+  }
 
-        .nav-links {
+  .site-title {
+    display: block;
+    font-family: "Avenir Black", "Avenir", sans-serif;
+    font-size: 20px;
+    font-weight: normal;
+    line-height: 20px;
+    letter-spacing: -1px;
+    text-align: left;
+    text-decoration: none;
+  }
 
-        }
+  .site-navigation {
+    position: absolute;
+    top: 20px;
+    right: 0;
+    left: 0;
+    display: grid;
+    grid-template-columns: repeat(4, 25%);
+    pointer-events: none;
+    padding: 0 var(--chrome-gutter);
+  }
 
-        #nav-small-screens {
-            display: none;
-        }
+  .site-navigation a {
+    display: block;
+    padding-right: 30px;
+    font-family: "Avenir", sans-serif;
+    font-size: 12px;
+    line-height: 20px;
+    text-align: right;
+    text-decoration: none;
+    pointer-events: auto;
+  }
 
-        ul {
-            list-style-type: none;
-        }  
-        
-        li {
-          float: left;
-          width: 25%;
-          line-height: 20px;
-          text-align: right;
-          font-size: 12px;
-          padding-right: 30px;
-          
-        }
+  .site-navigation a:first-child { grid-column: 2; }
+  .site-navigation a:last-child { padding-right: 0; }
+  .site-navigation a:hover { color: blue; text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: 2px; }
+  .site-title:hover { color: fuchsia; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 2px; }
+  .mobile-break { display: none; }
+  .menu-toggle { display: none; }
 
-        li a {
-          display: block;
-
-        }
-
-        .title {
-            color: black;
-            font-family: 'Avenir Black';
-            font-size: 20px;
-            line-height: 20px;
-            letter-spacing: -1px;
-            text-align: left;
-            
-
-        }
-
-        a {
-            text-decoration: none;
-            color: black;
-        }
-
-        .nav-links a:hover {
-            color:blue;
-            text-decoration:underline;
-            text-decoration-thickness: 1.5px;
-            text-underline-offset: 2px;
-        }
-
-        .title a:hover {
-            color:fuchsia;
-            text-decoration:underline;
-            text-decoration-thickness: 2px;
-            text-underline-offset: 2px;
-        }
+  @media (max-width: 800px) {
+    .site-header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      min-height: var(--header-height);
+      padding: max(0.75rem, env(safe-area-inset-top)) var(--chrome-gutter) 0.75rem;
+      border-bottom: 1px solid currentColor;
     }
 
- 
-    @media screen and (max-width: 800px) {
+    .site-title {
+      max-width: 8rem;
+      font-size: 30px;
+      line-height: 30px;
+    }
 
-        .nav-links {
-            display: none;
-        }
+    .mobile-break { display: inline; }
 
-        #nav-small-screens {
-            top: 0;
-            position: sticky;
-            right: 0;
-            text-align: right;
-            padding-top: 1%;
-            padding-bottom: 1%;
-            width: 100%;
-            background-color: white;
-            border-bottom: solid;
-        }
+    .menu-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      min-height: 2.75rem;
+      padding: 0.35rem 0;
+      border: 0;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
 
-        ul {
-            list-style-type: none;
-            padding: 0;
-  
-        } 
-        
-        .title-small-screens {
-            color: black;
-            font-family: 'Avenir Black';
-            font-size: 30px;
-            line-height: 30px;
-            letter-spacing: -1px;
-            text-align: left;
-            float:left;
+    .menu-toggle-label { font-size: 12px; }
+    .menu-toggle-icon { display: grid; gap: 4px; width: 20px; }
+    .menu-toggle-icon i { display: block; height: 1px; background: currentColor; transition: transform 180ms ease, opacity 180ms ease; }
 
-        }
+    .site-navigation {
+      position: static;
+      display: none;
+      grid-column: 1 / -1;
+      grid-template-columns: 1fr;
+      gap: 0.5rem;
+      padding: 1rem 0 0.5rem;
+      pointer-events: auto;
+    }
 
- 
-        a {
-            text-decoration: none;
-            color: black;
-        }
+    .site-navigation a,
+    .site-navigation a:first-child {
+      grid-column: auto;
+      padding: 0.25rem 0;
+      font-size: 16px;
+      line-height: 1.25;
+      text-align: left;
+    }
 
-        ul a:hover {
-            color:blue;;
-            text-decoration:underline;
-            text-decoration-thickness: 1.5px;
-            text-underline-offset: 2px;
-        }
+    .site-header.menu-open .site-navigation { display: grid; }
+    .site-header.menu-open .menu-toggle-icon i:first-child { transform: translateY(5px) rotate(45deg); }
+    .site-header.menu-open .menu-toggle-icon i:nth-child(2) { opacity: 0; }
+    .site-header.menu-open .menu-toggle-icon i:last-child { transform: translateY(-5px) rotate(-45deg); }
+  }
 
-        .title-small-screens a:hover {
-            color:fuchsia;
-            text-decoration:underline;
-            text-decoration-thickness: 3px;
-            text-underline-offset: 8px;
-        }
-    } 
+  @media (max-width: 1024px) {
+    .site-header { background: #fff; }
+  }
 </style>
-
-

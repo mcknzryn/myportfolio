@@ -1,158 +1,74 @@
+@font-face {
+  font-family: "font-customf2b";
+  src: url("/fonts/font-customf2b.woff") format("woff");
+  font-display: swap;
+}
+
+:root {
+  --page-gutter: clamp(1rem, 4vw, 4rem);
+  --chrome-gutter: 4%;
+  --header-height: 3.5rem;
+  --footer-height: 3.5rem;
+}
+
+* { box-sizing: border-box; }
+
 html {
-    background-color: #ffffff;
-    font-family: 'Avenir';
+  background-color: #fff;
+  color: #000;
+  font-family: "Avenir", sans-serif;
+  overflow-x: hidden;
+}
+
+body {
+  width: 100%;
+  min-width: 0;
+  margin: 0 auto;
+  padding: 4%;
+  overflow-x: hidden;
+}
+
+body.home-page {
+  overflow: hidden;
+}
+
+h1, h2, h3, p { overflow-wrap: anywhere; }
+
+h1 {
+  margin: 2% 0;
+  font-size: clamp(1.75rem, 5vw, 2.5rem);
+}
+
+a { color: inherit; }
+
+a:focus-visible, button:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
+}
+
+html.dark { background-color: #0d0950; color: #fff; }
+
+@media (max-width: 800px) {
+  :root {
+    --page-gutter: clamp(0.75rem, 4vw, 1.5rem);
+    --chrome-gutter: var(--page-gutter);
+    --header-height: 4.5rem;
+    --footer-height: 0rem;
   }
-  
+
   body {
-    margin: 0 auto;
-    width: 100%;
-    padding: 4%;
-  }
-  
-  * {
-    box-sizing: border-box;
-  }
-  
-  h1 {
-    margin: 2% 0;
-    font-size: 2.5rem;
+    padding-top: var(--header-height);
+    padding-left: var(--page-gutter);
+    padding-right: var(--page-gutter);
+    padding-bottom: 1.5rem;
   }
 
-  /* import custom font */ 
-  @font-face {
-    font-family: 'font-customf2b';
-    src: url('/fonts/font-customf2b.woff');
+  body.home-page {
+    padding-top: 4%;
+    padding-bottom: 0;
   }
+}
 
-  /* light/dark mode */
-  html.dark {
-    background-color: #0d0950;
-    color: #fff;
-  }
-  
-  .dark .nav-links a {
-    color: #fff;
-  }
-
-  
-  /* nav styles 
-  .hamburger {
-    padding-left: 5px;
-    cursor: pointer;
-    display: none;
-    justify-content: right;
-    border: solid pink;
-  }
-  
-  .hamburger .line {
-    display: none;
-    width: 20px;
-    height: 2px;
-    margin-bottom: 5px;
-    background-color: #000000;
-    
-  }
- 
-  .nav-links {
-    width: 100%;
-    top: 5rem;
-    display: none;
-    margin: 0;
-    font-family: 'Avenir Medium';
-  }
-
-  .nav-links ul {
-    padding: 0;
-    margin: 0;
-  }
-
-  .nav-links li {
-    display: block;
-    margin-bottom: 0;
-  }
-  
-  .nav-links a {
-    display: inline;
-    text-align: center;
-    padding: 10px 0;
-    font-size: 14px;
-    text-decoration: none;
-    color: black;
-    background-color: none;
-
-  }
-  
-  .nav-links a:hover,
-  .nav-links a:focus {
-    color:fuchsia;
-    font-family: cursive;
-  }
-
-  .nav-links a:active {
-    color:fuchsia;
-    font-family: cursive;
-  }
-  
-
-  @media (min-width: 800px) {
-    
-    .nav-links {
-      display: inline;
-      position: static;
-      width: auto;
-      background: none;
-    }
-  
-    .nav-links a {
-      display: inline;
-    }
-
-    .hamburger {
-        display: none;
-      }
-    }
-      
-    .nav-links li {
-      padding-left: 0px;
-      padding-right: 5px;
-      display: inline;
-      text-decoration: underline;
-      text-underline-offset: 2px;
-      margin-right: 18px;
-  
-  }
-
-  @media (max-width: 800px) {
-    
-    .nav-links {
-      display: inline;
-      position: static;
-      width: auto;
-      background: none;
-    }
-  
-    .nav-links a {
-      display: inline;
-    }
-
-    .hamburger {
-        display: none;
-      }
-    }
-      
-    .nav-links li {
-      padding-left: 0px;
-  
-  }
-   
-
-  
-  @media (min-width: 1600px) {
-    * {
-      transform: scale(1.04);
-      transform-origin: top left;
-    }
-
-  }
-
- */
+@media (min-width: 1600px) {
+  :root { --page-gutter: 4rem; }
+}

@@ -1,205 +1,62 @@
----
-import Social from './Social.astro';
-import Navigation from './Navigation.astro';
----
-<!-- 
-<style>
-
-    footer {
-        padding-top:100px;
-        padding-bottom: 50px;
-        margin: 60px;
-        font-size: 12px;
-        text-align: center;
-        color:rgb(11, 12, 12);
-        min-height: 100vh;
-        background-color: red;
-
-    }
-    #socials {
-        display: flex;
-        gap: 1rem;
-        margin-top: 1rem;
-    }
-</style> 
-
-<footer>
-
-<span>portfolio website by mckenzie ryan © 2025</span>
--->
-    <!-- 
-    <div id="socials">
-    <Social platform="instagram" username="thisspotstaken" />
-    <Social platform="youtube" username="@McKenzieRyan" />
-    <Social platform="behance" username="mckhoff" />
-    </div> -->
-
-<footer>
-<ul class="footer-items">
-    <li class="job-title">photographer | nyc & around the world</li>
-    <li><a href="https://www.instagram.com/thisspotstaken/" class="socials">@thisspotstaken</a></li>
-    <li><a href="mailto:knockknock@mckenzieryan.co" class="email">hello@mckenzieryan.co</a></li>
-</ul>
+<footer class="site-footer">
+  <ul class="footer-items">
+    <li class="job-title">photographer | nyc &amp; around the world</li>
+    <li><a href="https://www.instagram.com/thisspotstaken/">@thisspotstaken</a></li>
+    <li><a href="mailto:knockknock@mckenzieryan.co">hello@mckenzieryan.co</a></li>
+  </ul>
 </footer>
 
 <style>
+  .site-footer {
+    position: fixed;
+    z-index: 9;
+    inset: auto 0 0;
+    padding: 20px var(--chrome-gutter);
+    background: transparent;
+    font-family: "Avenir", sans-serif;
+    font-size: 0.75rem;
+    line-height: 1.25rem;
+    text-transform: uppercase;
+  }
 
-@media screen and (max-width: 800px) {
-      footer {
-       position: sticky;
-       bottom: 0;
-       background-color: white;
-        padding-top: 1%;
-        padding-bottom: 10%;
-        width: 100%;
-        text-transform:uppercase;
-        font-size: 14px;
-        border-top: solid;
-      }
+  .footer-items {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
 
-    .job-title {
-        display: none;
+  .footer-items li:nth-child(2),
+  .footer-items li:nth-child(3) { text-align: right; }
+
+  .site-footer a { text-decoration: none; }
+  .site-footer a:hover { color: chartreuse; text-decoration: underline; text-underline-offset: 2px; }
+
+  @media (max-width: 800px) {
+    .site-footer {
+      position: static;
+      padding: 1% var(--chrome-gutter) max(10%, env(safe-area-inset-bottom));
+      border-top: 1px solid currentColor;
+      font-size: 0.7rem;
     }
 
-    ul {
-        list-style-type: none;
-        padding: 0;
-        text-align: left;
-        display: inline-block;
-    }  
+    .footer-items { display: block; }
+    .footer-items li { padding: 0.1rem 0; }
+    .footer-items li:nth-child(2),
+    .footer-items li:nth-child(3) { text-align: left; }
+    .job-title { display: none; }
+  }
 
-    li {
-        padding: 1px;
-    }
+  :global(body.home-page) .site-footer {
+    position: fixed;
+    inset: auto 0 0;
+    background: transparent;
+  }
 
-    a {
-        color: black;
-        text-decoration: none;
-        text-align: right;
-      }
-
-
-    a:hover {
-        color:chartreuse;
-        text-decoration:underline;
-        text-decoration-thickness: 1.5px;
-        text-underline-offset: 2px;
-      }
-
-}
-@media screen and (min-width: 800px) {
-      footer {
-        bottom: 0;
-        left: 0;
-        line-height: 20px;
-        font-family: 'Avenir';
-        font-size: 12px;
-        text-transform:uppercase;
-        position: fixed;
-        width: 100%;
-        padding-top: 20px;
-        padding-bottom: 20px;
-        padding-right: 30px;
-        
-      }
-
-    ul {
-        list-style-type: none;
-    }  
-        
-    li {
-          float: left;
-          width: 33.3%;
-          line-height: 20px;
-          font-size: 12px;
-          text-align: right;
-
-          
-    }
-
-    li a {
-        
-    }
-
-    .job-title {
-            text-align: left;
-    }
-
-    .socials {
-    }
-
-    .email {
-        text-decoration: none;
-        float: right;
-        text-align: right;
-      }
-
-      a {
-        color: black;
-        text-decoration: none;
-      }
-
-
-      a:hover {
-        color:chartreuse;
-        text-decoration:underline;
-        text-decoration-thickness: 1.5px;
-        text-underline-offset: 2px;
-      }
-
-}
-
-    
-/*
-      .nav-links {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        float: none;
-
-      }
-
-*/
-
-
-
-/**
-
-.top {
-  float: none;
-  display: block;
-}
-
-header {
-        font-family: 'Avenir Medium';
-        border: none;
-        display:block;
-        float: none;
-        }
-
-      a {
-        color: black;
-        font-size: 14px;
-        text-decoration: none;
-        
-       }
-       
-       a:link {
-        text-decoration: none;
-       } 
-
-       a:visited {
-        text-decoration: none;
-       }
-
-      .email a:hover {
-        color:rgb(210, 210, 210);
-       }
-
-       a:active {
-        color:fuchsia;
-       }
- */
-     
+  @media (max-width: 1024px) {
+    .site-footer,
+    :global(body.home-page) .site-footer { background: #fff; }
+  }
 </style>
