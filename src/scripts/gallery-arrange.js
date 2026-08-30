@@ -1,9 +1,12 @@
+import Muuri from "muuri";
+
 const params = new URLSearchParams(window.location.search);
 const arrangeEnabled = params.get("arrange") === "1";
 const gallery = document.querySelector(".gallery");
 
 if (arrangeEnabled && gallery) {
   document.body.classList.add("arrange-mode");
+
   const storageKey = "mckenzieryan-work-gallery-state";
   const legacyStorageKey = "mckenzieryan-work-gallery-order";
   const sourceOrder = [...gallery.children].map((item) => item.dataset.imageId);
@@ -17,15 +20,12 @@ if (arrangeEnabled && gallery) {
     && new Set(order).size === order.length
     && order.every((id) => sourceOrder.includes(id));
 
-  const getOrder = () => [...gallery.children].map((item) => item.dataset.imageId);
-  const applyOrder = (order) => {
-    const items = new Map([...gallery.children].map((item) => [item.dataset.imageId, item]));
-    order.forEach((id) => gallery.append(items.get(id)));
-  };
-
   let favorites = validIds(configuredFavorites) ? new Set(configuredFavorites) : new Set();
   let pinned = validIds(configuredPinned) ? new Set(configuredPinned) : new Set();
+  let anchors = {};
   let savedState;
+  let grid;
+
   try {
     savedState = JSON.parse(localStorage.getItem(storageKey));
   } catch {
@@ -36,50 +36,154 @@ if (arrangeEnabled && gallery) {
     try {
       const legacyOrder = JSON.parse(localStorage.getItem(legacyStorageKey));
       if (validOrder(legacyOrder)) {
-        savedState = { order: legacyOrder, favorites: [...favorites], pinned: [...pinned] };
+        savedState = { order: legacyOrder, favorites: [...favorites], pinned: [...pinned], anchors: {} };
       }
     } catch {
       savedState = null;
     }
   }
 
-  if (savedState && validOrder(savedState.order)) applyOrder(savedState.order);
+  const savedAnchors = savedState?.anchors;
+  if (savedState && validOrder(savedState.order)) {
+    const items = new Map([...gallery.children].map((item) => [item.dataset.imageId, item]));
+    savedState.order.forEach((id) => gallery.append(items.get(id)));
+  }
   if (savedState && validIds(savedState.favorites)) favorites = new Set(savedState.favorites);
   if (savedState && validIds(savedState.pinned)) pinned = new Set(savedState.pinned);
+  if (savedAnchors && typeof savedAnchors === "object" && !Array.isArray(savedAnchors)) anchors = savedAnchors;
+
+  const getElements = () => [...gallery.querySelectorAll(".gallery-item")];
+  const getOrder = () => grid
+    ? grid.getItems().map((item) => item.getElement().dataset.imageId)
+    : getElements().map((item) => item.dataset.imageId);
+  const getItemId = (item) => item.getElement().dataset.imageId;
+  const getItemsById = (items) => new Map(items.map((item) => [getItemId(item), item]));
+  const getColumnCount = (width) => (width <= 600 ? 1 : width <= 900 ? 2 : 3);
+  const gap = 24;
+
+  const isValidAnchor = (anchor) => anchor
+    && Number.isFinite(anchor.x)
+    && Number.isFinite(anchor.y)
+    && Number.isFinite(anchor.width);
+
+  const getAnchor = (id, width) => {
+    const anchor = anchors[id];
+    if (!isValidAnchor(anchor)) return null;
+    return {
+      x: anchor.x * width,
+      y: anchor.y * width,
+      width: anchor.width * width,
+    };
+  };
+
+  const rectanglesOverlap = (a, b) => (
+    a.left < b.left + b.width
+      && a.left + a.width > b.left
+      && a.top < b.top + b.height
+      && a.top + a.height > b.top
+  );
+
+  const createLayout = (grid, layoutId, items, width, height, callback) => {
+    const columns = getColumnCount(width);
+    const columnWidth = (width - gap * (columns - 1)) / columns;
+    const slots = [];
+    const placed = [];
+    const pinnedRects = [];
+    const itemsById = getItemsById(items);
+    const currentMode = gallery.classList.contains("is-overview") ? "overview" : "masonry";
+
+    items.forEach((item) => {
+      const id = getItemId(item);
+      if (!pinned.has(id)) return;
+      const anchor = getAnchor(id, width);
+      if (!anchor) return;
+      const itemHeight = currentMode === "overview" ? columnWidth : item.getHeight();
+      const itemWidth = currentMode === "overview" ? columnWidth : Math.min(columnWidth, anchor.width || columnWidth);
+      const rect = {
+        left: Math.max(0, Math.min(width - itemWidth, anchor.x)),
+        top: Math.max(0, anchor.y),
+        width: itemWidth,
+        height: itemHeight,
+      };
+      pinnedRects.push(rect);
+      placed.push({ id, rect });
+    });
+
+    const columnBottoms = Array(columns).fill(0);
+    const placeItem = (item, x, initialY, itemWidth, itemHeight) => {
+      let y = initialY;
+      let candidate = { left: x, top: y, width: itemWidth, height: itemHeight };
+      let collision;
+      do {
+        collision = [...pinnedRects, ...placed.map(({ rect }) => rect)].find((rect) => rectanglesOverlap(candidate, rect));
+        if (collision) {
+          y = collision.top + collision.height + gap;
+          candidate = { left: x, top: y, width: itemWidth, height: itemHeight };
+        }
+      } while (collision);
+      placed.push({ id: getItemId(item), rect: candidate });
+      return candidate;
+    };
+
+    items.forEach((item) => {
+      const id = getItemId(item);
+      const pinnedAnchor = pinned.has(id) ? getAnchor(id, width) : null;
+      const rect = pinnedAnchor
+        ? placed.find((entry) => entry.id === id)?.rect
+        : (() => {
+          let bestColumn = 0;
+          for (let index = 1; index < columns; index += 1) {
+            if (columnBottoms[index] < columnBottoms[bestColumn]) bestColumn = index;
+          }
+          const itemWidth = currentMode === "overview" ? columnWidth : columnWidth;
+          const itemHeight = currentMode === "overview" ? columnWidth : item.getHeight();
+          const result = placeItem(
+            item,
+            bestColumn * (columnWidth + gap),
+            columnBottoms[bestColumn],
+            itemWidth,
+            itemHeight,
+          );
+          columnBottoms[bestColumn] = result.top + result.height + gap;
+          return result;
+        })();
+      slots.push(rect.left, rect.top);
+    });
+
+    const maxBottom = placed.reduce((bottom, { rect }) => Math.max(bottom, rect.top + rect.height), 0);
+    callback({
+      id: layoutId,
+      items,
+      slots,
+      styles: { width: `${width}px`, height: `${Math.max(maxBottom, 1)}px` },
+    });
+  };
 
   const toolbar = document.createElement("div");
   toolbar.className = "arrange-toolbar";
   toolbar.setAttribute("aria-label", "Gallery arrangement tools");
-
   const note = document.createElement("span");
   note.textContent = "Arrange mode — drag images to reorder";
-
   const resetButton = document.createElement("button");
   resetButton.type = "button";
   resetButton.textContent = "Reset";
-
   const randomizeButton = document.createElement("button");
   randomizeButton.type = "button";
   randomizeButton.textContent = "Randomize";
-
   const masonryButton = document.createElement("button");
   masonryButton.type = "button";
   masonryButton.textContent = "Masonry";
-
   const overviewButton = document.createElement("button");
   overviewButton.type = "button";
   overviewButton.textContent = "Overview";
-
   const copyButton = document.createElement("button");
   copyButton.type = "button";
   copyButton.textContent = "Copy order";
-
   const output = document.createElement("textarea");
   output.className = "arrange-output";
   output.setAttribute("aria-label", "Gallery order code");
   output.hidden = true;
   output.readOnly = true;
-
   toolbar.append(note, resetButton, randomizeButton, masonryButton, overviewButton, copyButton);
   gallery.before(toolbar, output);
 
@@ -87,6 +191,7 @@ if (arrangeEnabled && gallery) {
     order: getOrder(),
     favorites: [...favorites],
     pinned: [...pinned],
+    anchors,
   }));
   const updateToggleButton = (button, active, activeLabel, inactiveLabel, activeText, inactiveText) => {
     button.classList.toggle("is-active", active);
@@ -100,16 +205,16 @@ if (arrangeEnabled && gallery) {
   const updatePinButton = (button, id) => updateToggleButton(
     button, pinned.has(id), `Unpin ${id}`, `Pin ${id} in place`, "●", "○",
   );
-
   const setLayout = (layout) => {
     const overview = layout === "overview";
     gallery.classList.toggle("is-overview", overview);
     masonryButton.setAttribute("aria-pressed", String(!overview));
     overviewButton.setAttribute("aria-pressed", String(overview));
+    grid.layout(true);
   };
 
-  gallery.querySelectorAll(".gallery-item").forEach((item) => {
-    item.style.position = "relative";
+  getElements().forEach((item) => {
+    item.style.position = "absolute";
     const id = item.dataset.imageId;
     const favoriteButton = document.createElement("button");
     favoriteButton.type = "button";
@@ -123,7 +228,6 @@ if (arrangeEnabled && gallery) {
       updateFavoriteButton(favoriteButton, id);
       save();
     });
-
     const pinButton = document.createElement("button");
     pinButton.type = "button";
     pinButton.className = "arrange-pin-button";
@@ -131,41 +235,109 @@ if (arrangeEnabled && gallery) {
     updatePinButton(pinButton, id);
     pinButton.addEventListener("pointerdown", (event) => event.stopPropagation());
     pinButton.addEventListener("click", () => {
-      if (pinned.has(id)) pinned.delete(id);
-      else pinned.add(id);
+      if (pinned.has(id)) {
+        pinned.delete(id);
+        delete anchors[id];
+      } else {
+        const rect = item.getBoundingClientRect();
+        const galleryRect = gallery.getBoundingClientRect();
+        const width = Math.max(galleryRect.width, 1);
+        anchors[id] = {
+          x: (rect.left - galleryRect.left) / width,
+          y: (rect.top - galleryRect.top) / width,
+          width: rect.width / width,
+        };
+        pinned.add(id);
+      }
       updatePinButton(pinButton, id);
+      grid.layout(true);
       save();
     });
-
     item.append(favoriteButton, pinButton);
   });
 
-  const getPinnedPositions = () => new Map(
-    getOrder().map((id, index) => [index, id]).filter(([, id]) => pinned.has(id)),
-  );
+  grid = new Muuri(gallery, {
+    items: ".gallery-item",
+    dragEnabled: true,
+    dragContainer: document.body,
+    dragStartPredicate: (item, event) => {
+      if (pinned.has(getItemId(item))) return false;
+      if (event.isFinal) return undefined;
+      return event.distance >= 8 ? true : undefined;
+    },
+    layout: createLayout,
+    layoutOnResize: 150,
+    layoutDuration: 250,
+    dragRelease: { duration: 250 },
+  });
 
-  const normalizePinnedOrder = (order, pinnedPositions) => {
-    const pinnedEntries = [...pinnedPositions].sort(([first], [second]) => first - second);
-    const pinnedIds = new Set(pinnedEntries.map(([, id]) => id));
-    const movable = order.filter((id) => !pinnedIds.has(id));
-    let movableIndex = 0;
-    return Array.from({ length: sourceOrder.length }, (_, index) => {
-      const pinnedEntry = pinnedEntries.find(([position]) => position === index);
-      return pinnedEntry ? pinnedEntry[1] : movable[movableIndex++];
+  grid.on("layoutEnd", () => {
+    const galleryRect = gallery.getBoundingClientRect();
+    const width = Math.max(galleryRect.width, 1);
+    const items = grid.getItems();
+    let changed = false;
+    items.forEach((item) => {
+      const id = getItemId(item);
+      if (!pinned.has(id) || isValidAnchor(anchors[id])) return;
+      const position = item.getPosition();
+      anchors[id] = { x: position.left / width, y: position.top / width, width: item.getWidth() / width };
+      changed = true;
     });
-  };
+    if (changed) save();
+  });
+  getElements().forEach((item) => {
+    const image = item.querySelector("img");
+    if (!image || image.complete) return;
+    image.addEventListener("load", () => grid.refreshItems().layout(), { once: true });
+  });
+  grid.on("dragEnd", () => {
+    grid.synchronize();
+    save();
+  });
+  grid.on("sort", () => {
+    grid.synchronize();
+    save();
+  });
 
-  const snippet = () => `const galleryOrder = [\n  ${getOrder().map((id) => JSON.stringify(id)).join(", ")}\n];\n\nconst galleryFavorites = [\n  ${[...favorites].map((id) => JSON.stringify(id)).join(", ")}\n];\n\nconst galleryPinned = [\n  ${[...pinned].map((id) => JSON.stringify(id)).join(", ")}\n];`;
+  const getCurrentItems = () => grid.getItems();
+  const sortByIds = (ids) => {
+    const itemsById = getItemsById(getCurrentItems());
+    grid.sort(ids.map((id) => itemsById.get(id)), { layout: "instant" });
+    grid.synchronize();
+  };
+  const getPublishedOrder = () => {
+    const width = Math.max(gallery.getBoundingClientRect().width, 1);
+    const columns = getColumnCount(width);
+    const columnWidth = (width - gap * (columns - 1)) / columns;
+    const items = getCurrentItems().map((item) => {
+      const position = item.getPosition();
+      const column = Math.max(0, Math.min(
+        columns - 1,
+        Math.round(position.left / Math.max(columnWidth + gap, 1)),
+      ));
+      return { id: getItemId(item), column, position };
+    });
+
+    // The public CSS gallery fills columns top-to-bottom, so export in the
+    // same order instead of Muuri's row-oriented visual reading order.
+    return items
+      .sort((first, second) => (
+        first.column - second.column
+        || first.position.top - second.position.top
+        || first.position.left - second.position.left
+      ))
+      .map(({ id }) => id);
+  };
+  const snippet = () => `const galleryOrder = [\n  ${getPublishedOrder().map((id) => JSON.stringify(id)).join(", ")}\n];`;
 
   resetButton.addEventListener("click", () => {
-    applyOrder(sourceOrder);
     favorites.clear();
     pinned.clear();
-    gallery.querySelectorAll(".arrange-favorite-button").forEach((button) => {
-      updateFavoriteButton(button, button.dataset.imageId);
-    });
-    gallery.querySelectorAll(".arrange-pin-button").forEach((button) => {
-      updatePinButton(button, button.dataset.imageId);
+    anchors = {};
+    sortByIds(sourceOrder);
+    getElements().forEach((item) => {
+      updateFavoriteButton(item.querySelector(".arrange-favorite-button"), item.dataset.imageId);
+      updatePinButton(item.querySelector(".arrange-pin-button"), item.dataset.imageId);
     });
     localStorage.removeItem(storageKey);
     localStorage.removeItem(legacyStorageKey);
@@ -175,7 +347,6 @@ if (arrangeEnabled && gallery) {
 
   randomizeButton.addEventListener("click", () => {
     const currentOrder = getOrder();
-    const pinnedPositions = getPinnedPositions();
     const movable = currentOrder.filter((id) => !pinned.has(id));
     const favoriteMovable = movable.filter((id) => favorites.has(id));
     const remaining = movable.filter((id) => !favorites.has(id));
@@ -183,8 +354,13 @@ if (arrangeEnabled && gallery) {
       const swapIndex = Math.floor(Math.random() * (index + 1));
       [remaining[index], remaining[swapIndex]] = [remaining[swapIndex], remaining[index]];
     }
-    applyOrder(normalizePinnedOrder([...favoriteMovable, ...remaining], pinnedPositions));
-    save();
+    const randomized = [...favoriteMovable, ...remaining];
+    const result = [];
+    let movableIndex = 0;
+    currentOrder.forEach((id) => {
+      result.push(pinned.has(id) ? id : randomized[movableIndex++]);
+    });
+    sortByIds(result);
     output.hidden = true;
   });
 
@@ -205,79 +381,4 @@ if (arrangeEnabled && gallery) {
       copyButton.textContent = "Select and copy below";
     }
   });
-
-  let dragState = null;
-
-  const moveDraggedItem = (event) => {
-    if (!dragState?.started) return;
-    const { item, offsetX, offsetY } = dragState;
-    item.style.left = `${event.clientX - offsetX}px`;
-    item.style.top = `${event.clientY - offsetY}px`;
-
-    const target = document.elementFromPoint(event.clientX, event.clientY)?.closest(".gallery-item");
-    if (!target || target === item || !gallery.contains(target) || pinned.has(target.dataset.imageId)) return;
-    const targetRect = target.getBoundingClientRect();
-    const before = event.clientY < targetRect.top + targetRect.height / 2;
-    const reference = before ? target : target.nextElementSibling;
-    if (reference !== dragState.placeholder && reference !== item) {
-      gallery.insertBefore(dragState.placeholder, reference);
-    }
-  };
-
-  const finishDrag = (event) => {
-    if (!dragState) return;
-    const { item, placeholder, started } = dragState;
-    if (started) {
-      item.style.cssText = dragState.originalStyle;
-      item.classList.remove("is-dragging");
-      gallery.insertBefore(item, placeholder);
-      placeholder.remove();
-      applyOrder(normalizePinnedOrder(getOrder(), dragState.pinnedPositions));
-      save();
-    }
-    if (event?.pointerId !== undefined) event.preventDefault();
-    dragState = null;
-  };
-
-  gallery.addEventListener("pointerdown", (event) => {
-    if (event.button !== 0 && event.pointerType !== "touch") return;
-    const item = event.target.closest(".gallery-item");
-    if (!item || pinned.has(item.dataset.imageId)) return;
-    const rect = item.getBoundingClientRect();
-    dragState = {
-      item,
-      startX: event.clientX,
-      startY: event.clientY,
-      offsetX: event.clientX - rect.left,
-      offsetY: event.clientY - rect.top,
-      originalStyle: item.style.cssText,
-      pinnedPositions: getPinnedPositions(),
-      started: false,
-      placeholder: document.createElement("div"),
-    };
-    dragState.placeholder.className = "gallery-placeholder";
-    dragState.placeholder.style.width = `${rect.width}px`;
-    dragState.placeholder.style.height = `${rect.height}px`;
-  });
-
-  window.addEventListener("pointermove", (event) => {
-    if (!dragState) return;
-    const distance = Math.hypot(event.clientX - dragState.startX, event.clientY - dragState.startY);
-    if (!dragState.started && distance < 8) return;
-    if (!dragState.started) {
-      dragState.started = true;
-      dragState.item.classList.add("is-dragging");
-      dragState.item.style.width = `${dragState.item.getBoundingClientRect().width}px`;
-      dragState.item.style.position = "fixed";
-      dragState.item.style.zIndex = "10";
-      dragState.item.style.pointerEvents = "none";
-      dragState.item.parentNode.insertBefore(dragState.placeholder, dragState.item);
-      document.body.append(dragState.item);
-    }
-    event.preventDefault();
-    moveDraggedItem(event);
-  }, { passive: false });
-
-  window.addEventListener("pointerup", finishDrag);
-  window.addEventListener("pointercancel", finishDrag);
 }
