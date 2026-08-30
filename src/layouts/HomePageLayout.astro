@@ -50,7 +50,7 @@ const pageTitle = "Home Page";
     min-height: 0;
     display: grid;
     place-items: center;
-    padding: 1rem 1.5rem;
+    padding: 0 1.5rem 4rem;
   }
 
   :global(body) {
@@ -74,7 +74,7 @@ const pageTitle = "Home Page";
     margin: 0;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 450ms ease;
+    transition: opacity 700ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .slide.active {
@@ -92,42 +92,26 @@ const pageTitle = "Home Page";
 
   .gallery-control {
     position: absolute;
-    top: 50%;
+    top: 0;
     z-index: 2;
-    width: 2.5rem;
-    height: 3rem;
+    width: 28%;
+    height: 100%;
     padding: 0;
     border: 0;
     background: transparent;
-    color: #111;
-    font: 2rem/1 Arial, sans-serif;
+    color: transparent;
+    font-size: 0;
     cursor: pointer;
     opacity: 0;
-    transform: translateY(-50%);
-    transition: opacity 220ms ease;
-  }
-
-  .gallery-control span {
-    display: block;
-    transform: translateY(-2px);
+    transform: none;
   }
 
   .gallery-control.previous {
-    left: 8%;
+    left: 0;
   }
 
   .gallery-control.next {
-    right: 8%;
-  }
-
-  .gallery-stage:hover .gallery-control,
-  .gallery-stage:focus-within .gallery-control {
-    opacity: 1;
-  }
-
-  .gallery-control:hover,
-  .gallery-control:focus-visible {
-    opacity: 0.55;
+    right: 0;
   }
 
   .gallery-control:focus-visible {
@@ -138,7 +122,7 @@ const pageTitle = "Home Page";
   @media (max-width: 700px) {
     .home-gallery {
       height: calc(100svh - 8rem);
-      padding: 1rem 0 2rem;
+      padding: 0 0 3rem;
     }
 
     .gallery-stage {
@@ -177,6 +161,7 @@ const pageTitle = "Home Page";
     const nextButton = stage.querySelector<HTMLButtonElement>(".next");
     let currentIndex = slides.findIndex((slide) => slide.classList.contains("active"));
     let autoplay: number | undefined;
+    let resumeTimeout: number | undefined;
     let touchStartX = 0;
 
     const showSlide = (nextIndex: number) => {
@@ -186,7 +171,7 @@ const pageTitle = "Home Page";
 
     const startAutoplay = () => {
       if (slides.length > 1 && autoplay === undefined) {
-        autoplay = window.setInterval(() => showSlide(currentIndex + 1), 5000);
+        autoplay = window.setInterval(() => showSlide(currentIndex + 1), 2500);
       }
     };
 
@@ -197,8 +182,25 @@ const pageTitle = "Home Page";
       }
     };
 
-    previousButton?.addEventListener("click", () => showSlide(currentIndex - 1));
-    nextButton?.addEventListener("click", () => showSlide(currentIndex + 1));
+    const resumeAutoplayAfterClick = () => {
+      stopAutoplay();
+
+      if (resumeTimeout !== undefined) window.clearTimeout(resumeTimeout);
+      resumeTimeout = window.setTimeout(() => {
+        resumeTimeout = undefined;
+        startAutoplay();
+      }, 1000);
+    };
+
+    previousButton?.addEventListener("click", () => {
+      showSlide(currentIndex - 1);
+      resumeAutoplayAfterClick();
+    });
+
+    nextButton?.addEventListener("click", () => {
+      showSlide(currentIndex + 1);
+      resumeAutoplayAfterClick();
+    });
 
     stage.addEventListener("keydown", (event) => {
       if (event.key === "ArrowLeft") {
@@ -212,8 +214,6 @@ const pageTitle = "Home Page";
       }
     });
 
-    stage.addEventListener("mouseenter", stopAutoplay);
-    stage.addEventListener("mouseleave", startAutoplay);
     stage.addEventListener("focusin", stopAutoplay);
     stage.addEventListener("focusout", (event) => {
       if (!stage.contains(event.relatedTarget as Node | null)) startAutoplay();
