@@ -38,6 +38,10 @@ const gallery = orderedImageIds.map((id) => ({ id, ...imagesById.get(id)! }));
 ---
 
 <BaseLayout pageTitle={pageTitle} hidePageTitle={true}>
+  <script is:inline>
+    document.documentElement.classList.add("js");
+  </script>
+
   <main class="work-page">
 
     <section
@@ -62,6 +66,7 @@ const gallery = orderedImageIds.map((id) => ({ id, ...imagesById.get(id)! }));
   </main>
 </BaseLayout>
 
+<script src="../scripts/gallery-reveal.js"></script>
 {import.meta.env.DEV && <script src="../scripts/gallery-arrange.js"></script>}
 
 <style>
@@ -91,6 +96,15 @@ const gallery = orderedImageIds.map((id) => ({ id, ...imagesById.get(id)! }));
     break-inside: avoid;
     margin-bottom: clamp(1rem, 2.5vw, 2rem);
     touch-action: pan-y;
+    transition: opacity 700ms ease-in-out;
+  }
+
+  :global(html.js) .gallery-item:not(.is-revealed) {
+    opacity: 0;
+  }
+
+  .gallery-item.is-revealed {
+    opacity: 1;
   }
 
   .gallery-item.is-dragging {
