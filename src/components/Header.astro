@@ -95,16 +95,31 @@
 
     .menu-toggle-label { font-size: 12px; }
     .menu-toggle-icon { display: grid; gap: 4px; width: 20px; }
-    .menu-toggle-icon i { display: block; height: 1px; background: currentColor; transition: transform 180ms ease, opacity 180ms ease; }
+    .menu-toggle-icon i {
+      display: block;
+      height: 1px;
+      background: currentColor;
+      transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1), opacity 280ms ease;
+    }
 
     .site-navigation {
       position: static;
-      display: none;
+      display: grid;
       grid-column: 1 / -1;
       grid-template-columns: 1fr;
       gap: 0.5rem;
-      padding: 1rem 0 0.5rem;
-      pointer-events: auto;
+      max-height: 0;
+      padding: 0;
+      overflow: hidden;
+      opacity: 0;
+      transform: translateY(-0.35rem);
+      visibility: hidden;
+      pointer-events: none;
+      transition: max-height 420ms cubic-bezier(0.22, 1, 0.36, 1),
+        padding 420ms cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 360ms ease,
+        transform 420ms cubic-bezier(0.22, 1, 0.36, 1),
+        visibility 0s linear 420ms;
     }
 
     .site-navigation a,
@@ -115,12 +130,46 @@
       font-size: 12px;
       line-height: 20px;
       text-align: right;
+      opacity: 0;
+      transform: translateY(-0.35rem);
+      transition: opacity 360ms ease, transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
     }
 
-    .site-header.menu-open .site-navigation { display: grid; }
+    .site-header.menu-open .site-navigation {
+      max-height: 12rem;
+      padding: 1rem 0 0.5rem;
+      opacity: 1;
+      transform: translateY(0);
+      visibility: visible;
+      pointer-events: auto;
+      transition: max-height 280ms cubic-bezier(0.22, 1, 0.36, 1),
+        padding 280ms cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 220ms ease,
+        transform 280ms cubic-bezier(0.22, 1, 0.36, 1),
+        visibility 0s linear 0s;
+    }
+
+    .site-header.menu-open .site-navigation a {
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity 220ms ease, transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .site-header.menu-open .site-navigation a:nth-child(1) { transition-delay: 40ms; }
+    .site-header.menu-open .site-navigation a:nth-child(2) { transition-delay: 80ms; }
+    .site-header.menu-open .site-navigation a:nth-child(3) { transition-delay: 120ms; }
+
     .site-header.menu-open .menu-toggle-icon i:first-child { transform: translateY(5px) rotate(45deg); }
     .site-header.menu-open .menu-toggle-icon i:nth-child(2) { opacity: 0; }
     .site-header.menu-open .menu-toggle-icon i:last-child { transform: translateY(-5px) rotate(-45deg); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .menu-toggle-icon i,
+    .site-navigation,
+    .site-navigation a {
+      transition: none;
+    }
   }
 
   @media (max-width: 1024px) {
