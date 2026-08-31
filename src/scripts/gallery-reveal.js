@@ -7,18 +7,22 @@ if (gallery) {
 
   const reveal = (image) => image.classList.add("is-revealed");
   const revealImmediately = () => images.forEach(reveal);
-
-  const revealWhenReady = (image) => {
-    if (image.complete) {
-      if (typeof image.decode === "function") {
-        image.decode().catch(() => {}).finally(() => reveal(image));
-      } else {
-        reveal(image);
-      }
+  const revealAfterDecode = (image) => {
+    if (typeof image.decode !== "function") {
+      reveal(image);
       return;
     }
 
-    image.addEventListener("load", () => reveal(image), { once: true });
+    image.decode().catch(() => {}).finally(() => reveal(image));
+  };
+
+  const revealWhenReady = (image) => {
+    if (image.complete) {
+      revealAfterDecode(image);
+      return;
+    }
+
+    image.addEventListener("load", () => revealAfterDecode(image), { once: true });
     image.addEventListener("error", () => reveal(image), { once: true });
   };
 
