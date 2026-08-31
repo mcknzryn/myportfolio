@@ -8,7 +8,7 @@ const pageTitle = "bio & cv";
 <div class="container">
     <h1 id="pagetitle">{pageTitle}</h1>
     <div id="bio">
-        <p><b style="font-family: Avenir Heavy;"><i>McKenzie Ryan</i></b> is a lifestyle photographer based in New York City working across digital and analog mediums. Originally from the Midwest and shaped by her time in California, McKenzie brings a refined eye to commercial work. Her practice bridges documentary and editorial approaches, creating carefully composed imagery rooted in authentic storytelling, intentional light, and curated aesthetics.</p>
+        <p><b class="bio-name"><i>McKenzie Ryan</i></b> is a lifestyle photographer based in New York City working across digital and analog mediums. Originally from the Midwest and shaped by her time in California, McKenzie brings a refined eye to commercial work. Her practice bridges documentary and editorial approaches, creating carefully composed imagery rooted in authentic storytelling, intentional light, and curated aesthetics.</p>
         <img src="/assets/images/website-headshot.jpeg" alt="McKenzie Ryan" />
    
     </div>
@@ -52,13 +52,14 @@ const pageTitle = "bio & cv";
     font-size: clamp(0.875rem, 1.2vw, 1rem);
   }
 
+  .bio-name { font-weight: var(--font-weight-heavy); }
+
   #pagetitle {
     margin: 0;
     padding: 0 0 1.75rem;
     width: 100%;
     max-width: 100%;
     white-space: normal;
-    font-family: 'Avenir Black';
     font-size: clamp(1.75rem, 5vw, 2.5rem);
     line-height: 0.9;
   }
@@ -98,7 +99,6 @@ const pageTitle = "bio & cv";
 
   #cv h3 {
     margin: 0 0 0.15rem;
-    font-family: 'Avenir Black';
     font-size: clamp(1rem, 1.5vw, 1.125rem);
   }
 
@@ -135,7 +135,6 @@ const pageTitle = "bio & cv";
     #cv h1 {
       display: block;
       margin: 0 0 clamp(2rem, 4vw, 4rem);
-      font-family: 'Avenir Black';
       font-size: clamp(1.75rem, 5vw, 2.5rem);
       line-height: 0.9;
       text-align: right;
