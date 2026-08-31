@@ -7,8 +7,8 @@ const pageTitle = "get in touch...";
   <div class="container">
     <h1 id="pagetitle">{pageTitle}</h1>
     <div class="contact-content">
-      <p>For all inquiries and requests: <a href="mailto:knockknock@mckenzieryan.co">hello@mckenzieryan.co</a></p>
-      <p>More on Instagram: <a href="https://www.instagram.com/thisspotstaken/">@thisspotstaken</a></p>
+      <div class="contact-line">For all inquiries and requests: <a href="mailto:knockknock@mckenzieryan.co">hello@mckenzieryan.co</a></div>
+      <div class="contact-line">More on Instagram: <a href="https://www.instagram.com/thisspotstaken/">@thisspotstaken</a></div>
     </div>
   </div>
 </BaseLayout>
@@ -26,26 +26,55 @@ const pageTitle = "get in touch...";
     font-size: clamp(0.875rem, 1.2vw, 1rem);
   }
 
+  #pagetitle,
+  .contact-content h1,
+  .contact-content h2,
+  .contact-content h3 {
+    font-family: 'Avenir Black';
+    line-height: 0.9;
+  }
+
   #pagetitle {
     margin: 0;
     padding: 0 0 1rem;
     width: 100%;
     max-width: 100%;
     white-space: normal;
-    font-family: 'Avenir Black';
     font-size: clamp(1.75rem, 5vw, 2.5rem);
-    line-height: 0.9;
+  }
+
+  .contact-content h1 {
+    font-size: clamp(1.75rem, 5vw, 2.5rem);
+  }
+
+  .contact-content h2 {
+    font-size: clamp(1.5rem, 4vw, 2rem);
+  }
+
+  .contact-content h3 {
+    font-size: clamp(1rem, 1.5vw, 1.125rem);
   }
 
   .contact-content {
     min-width: 0;
     max-width: 100%;
     text-align: left;
+    font-family: 'Avenir', sans-serif;
+    font-weight: normal;
   }
 
-  .contact-content p {
+  .contact-line {
     margin: 0 0 1.25rem;
     overflow-wrap: anywhere;
+    font-size: clamp(1rem, 1.5vw, 1.125rem);
+    line-height: 0.9;
+  }
+
+  .contact-line a {
+    font-family: 'Avenir Black';
+    font-size: inherit;
+    font-weight: normal;
+    line-height: inherit;
   }
 
   @media (max-width: 800px) {
@@ -70,5 +99,13 @@ const pageTitle = "get in touch...";
 
   @media (min-width: 1200px) {
     .container { padding-top: clamp(1rem, 8vw, 10rem); }
+
+    .contact-content h3 {
+      font-size: 0.875rem;
+    }
+
+    .contact-line {
+      font-size: 0.875rem;
+    }
   }
 </style>
