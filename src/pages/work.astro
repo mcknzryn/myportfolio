@@ -18,8 +18,8 @@ const galleryOrder = [
 
 // Arrange mode keeps these images at the front when randomized. New images
 // are non-favorites until they are explicitly marked in Arrange mode.
-const galleryFavorites = [];
-const galleryPinned = [];
+const galleryFavorites: string[] = [];
+const galleryPinned: string[] = [];
 
 const imagesById = new Map(
   Object.entries(imageModules).map(([path, module]) => {
