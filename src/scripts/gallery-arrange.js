@@ -9,22 +9,47 @@ if (arrangeEnabled && gallery) {
 
   const storageKey = "mckenzieryan-work-gallery-state";
   const legacyStorageKey = "mckenzieryan-work-gallery-order";
+  const configuredColumns = JSON.parse(gallery.dataset.galleryColumns || "[]");
+  const configuredUnplaced = JSON.parse(gallery.dataset.galleryUnplaced || "[]");
+  const columnGroups = [...gallery.querySelectorAll(".gallery-column")];
+  const unplacedGroup = gallery.querySelector(".gallery-unplaced");
+  columnGroups.forEach((column) => {
+    [...column.children].forEach((item) => gallery.append(item));
+    column.remove();
+  });
+  [...(unplacedGroup?.children || [])].forEach((item) => gallery.append(item));
+  unplacedGroup?.remove();
+
   const sourceOrder = [...gallery.children].map((item) => item.dataset.imageId);
   const configuredFavorites = JSON.parse(gallery.dataset.galleryFavorites || "[]");
   const configuredPinned = JSON.parse(gallery.dataset.galleryPinned || "[]");
   const validIds = (ids) => Array.isArray(ids)
     && new Set(ids).size === ids.length
     && ids.every((id) => sourceOrder.includes(id));
+  const validColumns = (columns) => Array.isArray(columns)
+    && columns.length === 3
+    && columns.every(validIds)
+    && validIds(columns.flat());
   const validOrder = (order) => Array.isArray(order)
     && order.length === sourceOrder.length
     && new Set(order).size === order.length
     && order.every((id) => sourceOrder.includes(id));
 
+  const sourceColumns = validColumns(configuredColumns)
+    ? configuredColumns.map((column) => [...column])
+    : [[], [], []];
+  const sourceUnplaced = validIds(configuredUnplaced)
+    ? configuredUnplaced.filter((id) => !sourceColumns.flat().includes(id))
+    : sourceOrder.filter((id) => !sourceColumns.flat().includes(id));
+
   let favorites = validIds(configuredFavorites) ? new Set(configuredFavorites) : new Set();
   let pinned = validIds(configuredPinned) ? new Set(configuredPinned) : new Set();
+  let columns = sourceColumns.map((column) => [...column]);
+  let unplaced = [...sourceUnplaced];
   let anchors = {};
   let savedState;
   let grid;
+  let isDragging = false;
 
   try {
     savedState = JSON.parse(localStorage.getItem(storageKey));
@@ -43,11 +68,31 @@ if (arrangeEnabled && gallery) {
     }
   }
 
-  const savedAnchors = savedState?.anchors;
-  if (savedState && validOrder(savedState.order)) {
-    const items = new Map([...gallery.children].map((item) => [item.dataset.imageId, item]));
-    savedState.order.forEach((id) => gallery.append(items.get(id)));
+  const savedColumns = savedState?.columns;
+  const savedUnplaced = savedState?.unplaced;
+  if (savedState && validColumns(savedColumns) && validIds(savedUnplaced)) {
+    const savedIds = savedColumns.flat();
+    const savedUnplacedIds = savedUnplaced.filter((id) => !savedIds.includes(id));
+    if (validIds([...savedIds, ...savedUnplacedIds]) && [...savedIds, ...savedUnplacedIds].length === sourceOrder.length) {
+      columns = savedColumns.map((column) => [...column]);
+      unplaced = savedUnplacedIds;
+    }
+  } else if (savedState && validOrder(savedState.order)) {
+    const firstColumnEnd = sourceColumns[0].length;
+    const secondColumnEnd = firstColumnEnd + sourceColumns[1].length;
+    columns = [
+      savedState.order.slice(0, firstColumnEnd),
+      savedState.order.slice(firstColumnEnd, secondColumnEnd),
+      savedState.order.slice(secondColumnEnd),
+    ];
   }
+  const itemsById = new Map([...gallery.children].map((item) => [item.dataset.imageId, item]));
+  [...columns.flat(), ...unplaced].forEach((id) => {
+    const item = itemsById.get(id);
+    if (item) gallery.append(item);
+  });
+
+  const savedAnchors = savedState?.anchors;
   if (savedState && validIds(savedState.favorites)) favorites = new Set(savedState.favorites);
   if (savedState && validIds(savedState.pinned)) pinned = new Set(savedState.pinned);
   if (savedAnchors && typeof savedAnchors === "object" && !Array.isArray(savedAnchors)) anchors = savedAnchors;
@@ -56,6 +101,11 @@ if (arrangeEnabled && gallery) {
   const getOrder = () => grid
     ? grid.getItems().map((item) => item.getElement().dataset.imageId)
     : getElements().map((item) => item.dataset.imageId);
+  const getWorkingColumns = () => {
+    const workingColumns = columns.map((column) => [...column]);
+    workingColumns[2].push(...unplaced);
+    return workingColumns;
+  };
   const getItemId = (item) => item.getElement().dataset.imageId;
   const getItemsById = (items) => new Map(items.map((item) => [getItemId(item), item]));
   const getColumnCount = (width) => (width <= 600 ? 1 : width <= 900 ? 2 : 3);
@@ -89,7 +139,9 @@ if (arrangeEnabled && gallery) {
     const slots = [];
     const placed = [];
     const pinnedRects = [];
-    const itemsById = getItemsById(items);
+    const columnById = new Map(
+      getWorkingColumns().flatMap((column, columnIndex) => column.map((id) => [id, columnIndex])),
+    );
     const currentMode = gallery.classList.contains("is-overview") ? "overview" : "masonry";
 
     items.forEach((item) => {
@@ -131,20 +183,17 @@ if (arrangeEnabled && gallery) {
       const rect = pinnedAnchor
         ? placed.find((entry) => entry.id === id)?.rect
         : (() => {
-          let bestColumn = 0;
-          for (let index = 1; index < columns; index += 1) {
-            if (columnBottoms[index] < columnBottoms[bestColumn]) bestColumn = index;
-          }
+          const column = Math.max(0, Math.min(columns - 1, columnById.get(id) ?? 2));
           const itemWidth = currentMode === "overview" ? columnWidth : columnWidth;
           const itemHeight = currentMode === "overview" ? columnWidth : item.getHeight();
           const result = placeItem(
             item,
-            bestColumn * (columnWidth + gap),
-            columnBottoms[bestColumn],
+            column * (columnWidth + gap),
+            columnBottoms[column],
             itemWidth,
             itemHeight,
           );
-          columnBottoms[bestColumn] = result.top + result.height + gap;
+          columnBottoms[column] = result.top + result.height + gap;
           return result;
         })();
       slots.push(rect.left, rect.top);
@@ -187,12 +236,55 @@ if (arrangeEnabled && gallery) {
   toolbar.append(note, resetButton, randomizeButton, masonryButton, overviewButton, copyButton);
   gallery.before(toolbar, output);
 
-  const save = () => localStorage.setItem(storageKey, JSON.stringify({
-    order: getOrder(),
-    favorites: [...favorites],
-    pinned: [...pinned],
-    anchors,
-  }));
+  const getPublishedColumns = () => {
+    const width = Math.max(gallery.getBoundingClientRect().width, 1);
+    if (getColumnCount(width) !== 3 || !grid) return columns.map((column) => [...column]);
+    const columnWidth = (width - gap * 2) / 3;
+    const publishedColumns = [[], [], []];
+    grid.getItems().forEach((item) => {
+      const position = item.getPosition();
+      const column = Math.max(0, Math.min(
+        2,
+        Math.round(position.left / Math.max(columnWidth + gap, 1)),
+      ));
+      publishedColumns[column].push({ id: getItemId(item), top: position.top });
+    });
+    return publishedColumns.map((column) => column
+      .sort((first, second) => first.top - second.top)
+      .map(({ id }) => id));
+  };
+
+  const syncColumnsFromLayout = () => {
+    const publishedColumns = getPublishedColumns();
+    const committedColumns = columns.map((column) => [...column]);
+    const stagedIds = new Set(unplaced);
+    const nextUnplaced = [];
+    const nextColumns = publishedColumns.map((column, columnIndex) => column.filter((id, index) => {
+      if (!stagedIds.has(id)) return true;
+      const stagedIndex = unplaced.indexOf(id);
+      const isStillStaged = columnIndex === 2
+        && index === committedColumns[2].length + stagedIndex;
+      if (isStillStaged) nextUnplaced.push(id);
+      return !isStillStaged;
+    }));
+    if (nextColumns.length === 3) columns = nextColumns;
+    unplaced = nextUnplaced;
+  };
+
+  const persist = () => {
+    localStorage.setItem(storageKey, JSON.stringify({
+      columns,
+      unplaced,
+      order: columns.flat(),
+      favorites: [...favorites],
+      pinned: [...pinned],
+      anchors,
+    }));
+  };
+  const save = () => {
+    syncColumnsFromLayout();
+    persist();
+  };
   const updateToggleButton = (button, active, activeLabel, inactiveLabel, activeText, inactiveText) => {
     button.classList.toggle("is-active", active);
     button.textContent = active ? activeText : inactiveText;
@@ -287,16 +379,68 @@ if (arrangeEnabled && gallery) {
   });
   getElements().forEach((item) => {
     const image = item.querySelector("img");
-    if (!image || image.complete) return;
-    image.addEventListener("load", () => grid.refreshItems().layout(), { once: true });
+    if (!image) return;
+    const refresh = () => grid.refreshItems().layout();
+    image.addEventListener("load", refresh, { once: true });
+    image.addEventListener("error", refresh, { once: true });
+    if (image.complete) refresh();
   });
-  grid.on("dragEnd", () => {
+
+  const commitDrag = (draggedItem) => {
+    const draggedId = getItemId(draggedItem);
+    const draggedRect = draggedItem.getElement().getBoundingClientRect();
+    const galleryRect = gallery.getBoundingClientRect();
+    const width = Math.max(galleryRect.width, 1);
+    const columnWidth = (width - gap * 2) / 3;
+    const centerX = draggedRect.left + draggedRect.width / 2 - galleryRect.left;
+    const targetColumn = Math.max(0, Math.min(
+      2,
+      Math.floor(centerX / Math.max(columnWidth + gap, 1)),
+    ));
+    const targetTop = draggedRect.top - galleryRect.top;
+    const stagedIds = new Set(unplaced);
+    const workingColumns = getWorkingColumns().map((column) => column.filter((id) => id !== draggedId));
+    const itemsById = getItemsById(grid.getItems());
+    const targetItems = workingColumns[targetColumn]
+      .map((id) => itemsById.get(id))
+      .filter(Boolean)
+      .sort((first, second) => first.getPosition().top - second.getPosition().top);
+    const targetIndex = targetItems.findIndex((item) => {
+      const position = item.getPosition();
+      return position.top + item.getHeight() / 2 > targetTop;
+    });
+    const insertionIndex = targetIndex === -1 ? workingColumns[targetColumn].length : targetIndex;
+    const draggedWasUnplaced = unplaced.includes(draggedId);
+
+    const stagedDrop = draggedWasUnplaced
+      && targetColumn === 2
+      && insertionIndex >= columns[2].length;
+    columns = workingColumns.map((column) => column.filter((id) => !stagedIds.has(id)));
+    unplaced = unplaced.filter((id) => id !== draggedId);
+    if (stagedDrop) {
+      const stagedIndex = Math.max(0, insertionIndex - columns[2].length);
+      unplaced.splice(Math.min(stagedIndex, unplaced.length), 0, draggedId);
+    } else {
+      const committedIndex = targetColumn === 2
+        ? Math.min(insertionIndex, columns[2].length)
+        : insertionIndex;
+      columns[targetColumn].splice(Math.min(committedIndex, columns[targetColumn].length), 0, draggedId);
+    }
+  };
+
+  grid.on("dragStart", () => {
+    isDragging = true;
+  });
+  grid.on("dragEnd", (item) => {
+    commitDrag(item);
     grid.synchronize();
-    save();
+    grid.layout(true);
+    persist();
+    isDragging = false;
   });
   grid.on("sort", () => {
     grid.synchronize();
-    save();
+    if (!isDragging) save();
   });
 
   const getCurrentItems = () => grid.getItems();
@@ -305,36 +449,20 @@ if (arrangeEnabled && gallery) {
     grid.sort(ids.map((id) => itemsById.get(id)), { layout: "instant" });
     grid.synchronize();
   };
-  const getPublishedOrder = () => {
-    const width = Math.max(gallery.getBoundingClientRect().width, 1);
-    const columns = getColumnCount(width);
-    const columnWidth = (width - gap * (columns - 1)) / columns;
-    const items = getCurrentItems().map((item) => {
-      const position = item.getPosition();
-      const column = Math.max(0, Math.min(
-        columns - 1,
-        Math.round(position.left / Math.max(columnWidth + gap, 1)),
-      ));
-      return { id: getItemId(item), column, position };
-    });
-
-    // The public CSS gallery fills columns top-to-bottom, so export in the
-    // same order instead of Muuri's row-oriented visual reading order.
-    return items
-      .sort((first, second) => (
-        first.column - second.column
-        || first.position.top - second.position.top
-        || first.position.left - second.position.left
-      ))
-      .map(({ id }) => id);
+  const snippet = () => {
+    syncColumnsFromLayout();
+    return `const galleryColumns = [\n${columns
+    .map((column) => `  [${column.map((id) => JSON.stringify(id)).join(", ")}]`)
+    .join(",\n")}\n];`;
   };
-  const snippet = () => `const galleryOrder = [\n  ${getPublishedOrder().map((id) => JSON.stringify(id)).join(", ")}\n];`;
 
   resetButton.addEventListener("click", () => {
     favorites.clear();
     pinned.clear();
     anchors = {};
-    sortByIds(sourceOrder);
+    columns = sourceColumns.map((column) => [...column]);
+    unplaced = [...sourceUnplaced];
+    sortByIds(getWorkingColumns().flat());
     getElements().forEach((item) => {
       updateFavoriteButton(item.querySelector(".arrange-favorite-button"), item.dataset.imageId);
       updatePinButton(item.querySelector(".arrange-pin-button"), item.dataset.imageId);
@@ -361,6 +489,7 @@ if (arrangeEnabled && gallery) {
       result.push(pinned.has(id) ? id : randomized[movableIndex++]);
     });
     sortByIds(result);
+    save();
     output.hidden = true;
   });
 
@@ -370,6 +499,7 @@ if (arrangeEnabled && gallery) {
 
   copyButton.addEventListener("click", async () => {
     const text = snippet();
+    save();
     output.value = text;
     output.hidden = false;
     output.select();
