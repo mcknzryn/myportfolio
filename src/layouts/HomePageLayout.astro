@@ -143,6 +143,20 @@ const pageTitle = "Home Page";
     }
   }
 
+  @media (min-width: 801px) {
+    .gallery-control {
+      width: var(--gallery-control-width, 0px);
+    }
+
+    .gallery-control.previous {
+      left: var(--gallery-control-left, 0px);
+    }
+
+    .gallery-control.next {
+      right: var(--gallery-control-right, 0px);
+    }
+  }
+
   @media (max-width: 800px) {
     .home-gallery {
       height: calc(100svh - var(--header-height) - var(--mobile-footer-clearance));
@@ -196,11 +210,45 @@ const pageTitle = "Home Page";
     let autoplay: number | undefined;
     let resumeTimeout: number | undefined;
     let touchStartX = 0;
+    const desktopQuery = window.matchMedia("(min-width: 801px)");
+    const desktopControlMargin = 32;
+    const desktopCenterGap = 160;
+
+    const updateDesktopControls = () => {
+      if (!desktopQuery.matches) {
+        stage.style.removeProperty("--gallery-control-width");
+        stage.style.removeProperty("--gallery-control-left");
+        stage.style.removeProperty("--gallery-control-right");
+        return;
+      }
+
+      const activeImage = slides[currentIndex]?.querySelector<HTMLImageElement>("img");
+      if (!activeImage) return;
+
+      const stageRect = stage.getBoundingClientRect();
+      const imageRect = activeImage.getBoundingClientRect();
+      const imageLeft = Math.max(0, imageRect.left - stageRect.left - desktopControlMargin);
+      const imageRight = Math.max(0, stageRect.right - imageRect.right - desktopControlMargin);
+      const controlWidth = Math.max(
+        0,
+        Math.min(
+          imageRect.width / 2 + desktopControlMargin - desktopCenterGap / 2,
+          stageRect.width / 2,
+        ),
+      );
+
+      stage.style.setProperty("--gallery-control-width", `${controlWidth}px`);
+      stage.style.setProperty("--gallery-control-left", `${imageLeft}px`);
+      stage.style.setProperty("--gallery-control-right", `${imageRight}px`);
+    };
+
+    const scheduleDesktopControlUpdate = () => window.requestAnimationFrame(updateDesktopControls);
 
     const showSlide = (nextIndex: number) => {
       if (slides.length === 0) return;
       currentIndex = (nextIndex + slides.length) % slides.length;
       slides.forEach((slide, index) => slide.classList.toggle("active", index === currentIndex));
+      scheduleDesktopControlUpdate();
     };
 
     const startAutoplay = () => {
@@ -266,6 +314,12 @@ const pageTitle = "Home Page";
       startAutoplay();
     }, { passive: true });
 
+    slides.forEach((slide) => {
+      slide.querySelector<HTMLImageElement>("img")?.addEventListener("load", scheduleDesktopControlUpdate);
+    });
+    window.addEventListener("resize", scheduleDesktopControlUpdate);
+    desktopQuery.addEventListener("change", scheduleDesktopControlUpdate);
+    scheduleDesktopControlUpdate();
     startAutoplay();
   }
 </script>
