@@ -77,6 +77,12 @@ const gallery = orderedImageIds.map((id) => ({ id, ...imagesById.get(id)! }));
     column-gap: clamp(1rem, 2.5vw, 2rem);
   }
 
+  @media (max-width: 800px) {
+    .work-page {
+      padding-top: 1.5rem;
+    }
+  }
+
   .gallery-item {
     margin: 0;
     min-width: 0;
@@ -235,7 +241,7 @@ const gallery = orderedImageIds.map((id) => ({ id, ...imagesById.get(id)! }));
 
   @media (max-width: 900px) {
     .work-page {
-      padding-top: 0.5rem;
+      padding-top: 1.5rem;
     }
 
     .gallery {
@@ -258,7 +264,7 @@ const gallery = orderedImageIds.map((id) => ({ id, ...imagesById.get(id)! }));
 
   @media (max-width: 600px) {
     .work-page {
-      padding: 0.5rem 0 2rem;
+      padding: 1.5rem 0 2rem;
     }
 
     .gallery {

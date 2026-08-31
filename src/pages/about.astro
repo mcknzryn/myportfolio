@@ -47,7 +47,7 @@ const pageTitle = "bio & cv";
     width: 100%;
     max-width: 1600px;
     margin: 0 auto;
-    padding: 0 1rem 3.75rem 0;
+    padding: 0 0 3.75rem;
     font-family: inherit;
     font-size: clamp(0.875rem, 1.2vw, 1rem);
   }
@@ -111,7 +111,7 @@ const pageTitle = "bio & cv";
     .container {
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
       column-gap: clamp(2rem, 8vw, 8rem);
-      padding-right: 1rem;
+      padding-right: 0;
     }
 
     #pagetitle,
@@ -137,6 +137,7 @@ const pageTitle = "bio & cv";
   @media (max-width: 767px) {
     .container {
       gap: 1.5rem;
+      padding-top: 1.5rem;
       padding-right: 0;
       padding-bottom: 2rem;
     }

@@ -52,7 +52,7 @@ html.dark { background-color: #0d0950; color: #fff; }
   :root {
     --page-gutter: clamp(0.75rem, 4vw, 1.5rem);
     --chrome-gutter: var(--page-gutter);
-    --header-height: 4.5rem;
+    --header-height: 5.25rem;
     --footer-height: 0rem;
   }
 

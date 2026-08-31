@@ -4,7 +4,6 @@ const pageTitle = "contact";
 ---
 
 <BaseLayout>
-
   <div class="container">
     <h1 id="pagetitle">{pageTitle}</h1>
     <div class="contact-content">
@@ -12,41 +11,52 @@ const pageTitle = "contact";
       <p>More on Instagram: <a href="https://www.instagram.com/thisspotstaken/">@thisspotstaken</a></p>
     </div>
   </div>
-  
 </BaseLayout>
 
 <style>
-  .contact-page {
+  .container {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: clamp(2rem, 8vw, 8rem);
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(2rem, 6vw, 5rem);
     width: 100%;
-    max-width: 1000px;
+    max-width: 1600px;
     margin: 0 auto;
-    padding: clamp(1rem, 5vw, 4rem) 0 4rem;
+    padding: 0 0 3.75rem;
+    font-family: inherit;
+    font-size: clamp(0.875rem, 1.2vw, 1rem);
   }
 
-  .contact-page h1 {
+  #pagetitle {
     margin: 0;
-    font-family: Arial, sans-serif;
-    font-size: clamp(2rem, 6vw, 2.5rem);
+    padding: 0 0 1.75rem;
+    width: 100%;
+    max-width: 100%;
+    white-space: normal;
+    font-family: 'Avenir Black';
+    font-size: clamp(1.75rem, 5vw, 2.5rem);
     line-height: 0.9;
   }
 
   .contact-content {
-    max-width: 32rem;
-    font-size: clamp(1rem, 1.5vw, 1.15rem);
-    line-height: 1.35;
+    min-width: 0;
+    max-width: 100%;
+    text-align: left;
   }
 
-  .contact-content p { margin: 0 0 1.25rem; }
-  .contact-content a { text-underline-offset: 0.2em; }
+  .contact-content p {
+    margin: 0 0 1.25rem;
+    overflow-wrap: anywhere;
+  }
 
-  @media (max-width: 700px) {
-    .contact-page {
-      grid-template-columns: 1fr;
-      gap: 2rem;
+  @media (max-width: 767px) {
+    .container {
+      gap: 1.5rem;
       padding-top: 1.5rem;
+      padding-bottom: 2rem;
     }
+  }
+
+  @media (min-width: 768px) and (max-width: 1199px) {
+    .container { padding-top: 2rem; }
   }
 </style>
