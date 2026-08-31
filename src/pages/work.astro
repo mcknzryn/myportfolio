@@ -38,11 +38,7 @@ const gallery = orderedImageIds.map((id) => ({ id, ...imagesById.get(id)! }));
 ---
 
 <BaseLayout pageTitle={pageTitle} hidePageTitle={true}>
-  <script is:inline>
-    document.documentElement.classList.add("js");
-  </script>
-
-  <main class="work-page">
+	<main class="work-page">
 
     <section
       class="gallery"
@@ -96,14 +92,17 @@ const gallery = orderedImageIds.map((id) => ({ id, ...imagesById.get(id)! }));
     break-inside: avoid;
     margin-bottom: clamp(1rem, 2.5vw, 2rem);
     touch-action: pan-y;
-    transition: opacity 700ms ease-in-out;
   }
 
-  :global(html.js) .gallery-item:not(.is-revealed) {
+  :global(html.js) .gallery-item :global(img):not(.is-revealed) {
     opacity: 0;
   }
 
-  .gallery-item.is-revealed {
+  .gallery-item :global(img) {
+    transition: opacity 900ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .gallery-item :global(img).is-revealed {
     opacity: 1;
   }
 
@@ -246,7 +245,6 @@ const gallery = orderedImageIds.map((id) => ({ id, ...imagesById.get(id)! }));
     display: block;
     width: 100%;
     height: auto;
-    transition: opacity 320ms ease-in-out; 
   }
 
   .gallery-item:hover :global(img) {
