@@ -142,14 +142,21 @@ const unplacedImageIds = allImageIds.filter((id) => !configuredGalleryIds.has(id
 
   :global(body.arrange-mode) .gallery {
     position: relative;
-    display: block;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     min-height: 1px;
     column-count: initial;
-    column-gap: 0;
+    gap: clamp(1rem, 2.5vw, 2rem);
+  }
+
+  :global(body.arrange-mode) .gallery-column {
+    position: relative;
+    display: block;
+    min-width: 0;
   }
 
   :global(body.arrange-mode) .gallery-item {
-    width: calc((100% - 3rem) / 3);
+    width: 100%;
     margin: 0;
   }
 
@@ -217,8 +224,8 @@ const unplacedImageIds = allImageIds.filter((id) => !configuredGalleryIds.has(id
 
   :global(.gallery.is-overview) {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
-    gap: 0.75rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(1rem, 2.5vw, 2rem);
     column-count: initial;
   }
 

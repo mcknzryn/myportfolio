@@ -1,28 +1,39 @@
 import Muuri from "muuri";
 
 const params = new URLSearchParams(window.location.search);
-const arrangeEnabled = params.get("arrange") === "1";
 const gallery = document.querySelector(".gallery");
+const arrangeRequested = params.get("arrange") === "1";
+const desktopQuery = window.matchMedia("(min-width: 901px)");
 
-if (arrangeEnabled && gallery) {
+if (arrangeRequested && gallery && !desktopQuery.matches) {
+  desktopQuery.addEventListener("change", () => window.location.reload(), { once: true });
+}
+
+if (arrangeRequested && gallery && desktopQuery.matches) {
   document.body.classList.add("arrange-mode");
+  desktopQuery.addEventListener("change", () => window.location.reload(), { once: true });
 
-  const storageKey = "mckenzieryan-work-gallery-state";
-  const legacyStorageKey = "mckenzieryan-work-gallery-order";
+  const storageKey = "mckenzieryan-work-gallery-state-v2";
+  const previousStorageKeys = [
+    "mckenzieryan-work-gallery-state",
+    "mckenzieryan-work-gallery-order",
+  ];
+  const storageVersion = 2;
+  const columnGroups = [...gallery.querySelectorAll(":scope > .gallery-column")];
+  const unplacedGroup = gallery.querySelector(":scope > .gallery-unplaced");
   const configuredColumns = JSON.parse(gallery.dataset.galleryColumns || "[]");
   const configuredUnplaced = JSON.parse(gallery.dataset.galleryUnplaced || "[]");
-  const columnGroups = [...gallery.querySelectorAll(".gallery-column")];
-  const unplacedGroup = gallery.querySelector(".gallery-unplaced");
-  columnGroups.forEach((column) => {
-    [...column.children].forEach((item) => gallery.append(item));
-    column.remove();
-  });
-  [...(unplacedGroup?.children || [])].forEach((item) => gallery.append(item));
-  unplacedGroup?.remove();
-
-  const sourceOrder = [...gallery.children].map((item) => item.dataset.imageId);
   const configuredFavorites = JSON.parse(gallery.dataset.galleryFavorites || "[]");
   const configuredPinned = JSON.parse(gallery.dataset.galleryPinned || "[]");
+
+  if (columnGroups.length !== 3) {
+    throw new Error("Arrange mode requires exactly three gallery columns.");
+  }
+
+  const itemElements = columnGroups.flatMap((column) => [...column.children]);
+  const unplacedElements = [...(unplacedGroup?.children || [])];
+  const allElements = [...itemElements, ...unplacedElements];
+  const sourceOrder = allElements.map((item) => item.dataset.imageId);
   const validIds = (ids) => Array.isArray(ids)
     && new Set(ids).size === ids.length
     && ids.every((id) => sourceOrder.includes(id));
@@ -30,10 +41,15 @@ if (arrangeEnabled && gallery) {
     && columns.length === 3
     && columns.every(validIds)
     && validIds(columns.flat());
-  const validOrder = (order) => Array.isArray(order)
-    && order.length === sourceOrder.length
-    && new Set(order).size === order.length
-    && order.every((id) => sourceOrder.includes(id));
+  const validPinSlots = (slots) => slots
+    && typeof slots === "object"
+    && !Array.isArray(slots)
+    && Object.values(slots).every((slot) => slot
+      && Number.isInteger(slot.column)
+      && Number.isInteger(slot.index)
+      && slot.column >= 0
+      && slot.column < 3
+      && slot.index >= 0);
 
   const sourceColumns = validColumns(configuredColumns)
     ? configuredColumns.map((column) => [...column])
@@ -46,10 +62,11 @@ if (arrangeEnabled && gallery) {
   let pinned = validIds(configuredPinned) ? new Set(configuredPinned) : new Set();
   let columns = sourceColumns.map((column) => [...column]);
   let unplaced = [...sourceUnplaced];
-  let anchors = {};
+  let pinSlots = {};
   let savedState;
-  let grid;
+  let grids = [];
   let isDragging = false;
+  let isApplyingState = false;
 
   try {
     savedState = JSON.parse(localStorage.getItem(storageKey));
@@ -57,154 +74,124 @@ if (arrangeEnabled && gallery) {
     savedState = null;
   }
 
-  if (!savedState) {
-    try {
-      const legacyOrder = JSON.parse(localStorage.getItem(legacyStorageKey));
-      if (validOrder(legacyOrder)) {
-        savedState = { order: legacyOrder, favorites: [...favorites], pinned: [...pinned], anchors: {} };
-      }
-    } catch {
-      savedState = null;
+  if (savedState?.version === storageVersion
+    && validColumns(savedState.columns)
+    && validIds(savedState.unplaced)) {
+    const savedIds = savedState.columns.flat();
+    const savedUnplaced = savedState.unplaced.filter((id) => !savedIds.includes(id));
+    const allSavedIds = [...savedIds, ...savedUnplaced];
+    if (allSavedIds.length === sourceOrder.length && validIds(allSavedIds)) {
+      columns = savedState.columns.map((column) => [...column]);
+      unplaced = savedUnplaced;
     }
+  } else if (savedState) {
+    // Do not restore the previous single-grid editor's layout. Its coordinates
+    // were not guaranteed to represent the committed production columns.
+    savedState = null;
   }
 
-  const savedColumns = savedState?.columns;
-  const savedUnplaced = savedState?.unplaced;
-  if (savedState && validColumns(savedColumns) && validIds(savedUnplaced)) {
-    const savedIds = savedColumns.flat();
-    const savedUnplacedIds = savedUnplaced.filter((id) => !savedIds.includes(id));
-    if (validIds([...savedIds, ...savedUnplacedIds]) && [...savedIds, ...savedUnplacedIds].length === sourceOrder.length) {
-      columns = savedColumns.map((column) => [...column]);
-      unplaced = savedUnplacedIds;
-    }
-  } else if (savedState && validOrder(savedState.order)) {
-    const firstColumnEnd = sourceColumns[0].length;
-    const secondColumnEnd = firstColumnEnd + sourceColumns[1].length;
-    columns = [
-      savedState.order.slice(0, firstColumnEnd),
-      savedState.order.slice(firstColumnEnd, secondColumnEnd),
-      savedState.order.slice(secondColumnEnd),
-    ];
-  }
-  const itemsById = new Map([...gallery.children].map((item) => [item.dataset.imageId, item]));
-  [...columns.flat(), ...unplaced].forEach((id) => {
-    const item = itemsById.get(id);
-    if (item) gallery.append(item);
-  });
-
-  const savedAnchors = savedState?.anchors;
   if (savedState && validIds(savedState.favorites)) favorites = new Set(savedState.favorites);
   if (savedState && validIds(savedState.pinned)) pinned = new Set(savedState.pinned);
-  if (savedAnchors && typeof savedAnchors === "object" && !Array.isArray(savedAnchors)) anchors = savedAnchors;
+  if (savedState && validPinSlots(savedState.pinSlots)) pinSlots = savedState.pinSlots;
 
+  const itemsById = new Map(allElements.map((item) => [item.dataset.imageId, item]));
+  const placeElements = () => {
+    columns.forEach((column, columnIndex) => {
+      column.forEach((id) => {
+        const item = itemsById.get(id);
+        if (item) columnGroups[columnIndex].append(item);
+      });
+    });
+    unplaced.forEach((id) => {
+      const item = itemsById.get(id);
+      if (item) columnGroups[2].append(item);
+    });
+    unplacedGroup?.remove();
+  };
+  const getItemId = (item) => item.getElement().dataset.imageId;
+  const getItemsById = (items) => new Map(items.map((item) => [getItemId(item), item]));
   const getElements = () => [...gallery.querySelectorAll(".gallery-item")];
-  const getOrder = () => grid
-    ? grid.getItems().map((item) => item.getElement().dataset.imageId)
-    : getElements().map((item) => item.dataset.imageId);
   const getWorkingColumns = () => {
     const workingColumns = columns.map((column) => [...column]);
     workingColumns[2].push(...unplaced);
     return workingColumns;
   };
-  const getItemId = (item) => item.getElement().dataset.imageId;
-  const getItemsById = (items) => new Map(items.map((item) => [getItemId(item), item]));
-  const getColumnCount = (width) => (width <= 600 ? 1 : width <= 900 ? 2 : 3);
-  const gap = 24;
 
-  const isValidAnchor = (anchor) => anchor
-    && Number.isFinite(anchor.x)
-    && Number.isFinite(anchor.y)
-    && Number.isFinite(anchor.width);
+  pinned.forEach((id) => {
+    if (pinSlots[id]) return;
+    const column = columns.findIndex((items) => items.includes(id));
+    const index = column === -1 ? 0 : columns[column].indexOf(id);
+    if (column !== -1) pinSlots[id] = { column, index };
+  });
 
-  const getAnchor = (id, width) => {
-    const anchor = anchors[id];
-    if (!isValidAnchor(anchor)) return null;
-    return {
-      x: anchor.x * width,
-      y: anchor.y * width,
-      width: anchor.width * width,
-    };
+  const normalizedSourceColumns = columns.map((column) => [...column]);
+
+  const normalizePinnedSlots = (nextColumns) => {
+    const normalized = nextColumns.map((column) => column.filter((id) => !pinned.has(id)));
+    Object.entries(pinSlots).forEach(([id, slot]) => {
+      if (!pinned.has(id) || !itemsById.has(id)) return;
+      const targetColumn = Math.max(0, Math.min(2, slot.column));
+      const targetIndex = Math.max(0, Math.min(slot.index, normalized[targetColumn].length));
+      normalized[targetColumn].splice(targetIndex, 0, id);
+    });
+    return normalized;
   };
 
-  const rectanglesOverlap = (a, b) => (
-    a.left < b.left + b.width
-      && a.left + a.width > b.left
-      && a.top < b.top + b.height
-      && a.top + a.height > b.top
-  );
+  columns = normalizePinnedSlots(normalizedSourceColumns);
+  placeElements();
 
-  const createLayout = (grid, layoutId, items, width, height, callback) => {
-    const columns = getColumnCount(width);
-    const columnWidth = (width - gap * (columns - 1)) / columns;
-    const slots = [];
-    const placed = [];
-    const pinnedRects = [];
-    const columnById = new Map(
-      getWorkingColumns().flatMap((column, columnIndex) => column.map((id) => [id, columnIndex])),
+  const syncColumnsFromGrids = () => {
+    const stagedIds = new Set(unplaced);
+    const gridColumns = grids.map((grid) => grid.getItems().map(getItemId));
+    const lastCommittedIndex = gridColumns[2].reduce(
+      (lastIndex, id, index) => (stagedIds.has(id) ? lastIndex : index),
+      -1,
     );
-    const currentMode = gallery.classList.contains("is-overview") ? "overview" : "masonry";
+    const nextUnplaced = gridColumns[2]
+      .filter((id, index) => stagedIds.has(id) && index > lastCommittedIndex);
+    const nextColumns = gridColumns.map((column, columnIndex) => column.filter((id, index) => (
+      columnIndex !== 2 || !stagedIds.has(id) || index <= lastCommittedIndex
+    )));
+    columns = normalizePinnedSlots(nextColumns);
+    unplaced = nextUnplaced;
+  };
 
+  const persist = () => {
+    localStorage.setItem(storageKey, JSON.stringify({
+      version: storageVersion,
+      columns,
+      unplaced,
+      favorites: [...favorites],
+      pinned: [...pinned],
+      pinSlots,
+    }));
+  };
+  const syncAndPersist = () => {
+    syncColumnsFromGrids();
+    applyColumnsToGrids();
+    persist();
+  };
+
+  const galleryGap = () => {
+    const value = getComputedStyle(columnGroups[0]).rowGap;
+    const parsed = Number.parseFloat(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+  const stackLayout = (grid, layoutId, items, width, height, callback) => {
+    const gap = galleryGap();
+    const overview = gallery.classList.contains("is-overview");
+    let top = 0;
+    const slots = [];
     items.forEach((item) => {
-      const id = getItemId(item);
-      if (!pinned.has(id)) return;
-      const anchor = getAnchor(id, width);
-      if (!anchor) return;
-      const itemHeight = currentMode === "overview" ? columnWidth : item.getHeight();
-      const itemWidth = currentMode === "overview" ? columnWidth : Math.min(columnWidth, anchor.width || columnWidth);
-      const rect = {
-        left: Math.max(0, Math.min(width - itemWidth, anchor.x)),
-        top: Math.max(0, anchor.y),
-        width: itemWidth,
-        height: itemHeight,
-      };
-      pinnedRects.push(rect);
-      placed.push({ id, rect });
+      const itemHeight = overview ? width : item.getHeight();
+      slots.push(0, top);
+      top += itemHeight + gap;
     });
-
-    const columnBottoms = Array(columns).fill(0);
-    const placeItem = (item, x, initialY, itemWidth, itemHeight) => {
-      let y = initialY;
-      let candidate = { left: x, top: y, width: itemWidth, height: itemHeight };
-      let collision;
-      do {
-        collision = [...pinnedRects, ...placed.map(({ rect }) => rect)].find((rect) => rectanglesOverlap(candidate, rect));
-        if (collision) {
-          y = collision.top + collision.height + gap;
-          candidate = { left: x, top: y, width: itemWidth, height: itemHeight };
-        }
-      } while (collision);
-      placed.push({ id: getItemId(item), rect: candidate });
-      return candidate;
-    };
-
-    items.forEach((item) => {
-      const id = getItemId(item);
-      const pinnedAnchor = pinned.has(id) ? getAnchor(id, width) : null;
-      const rect = pinnedAnchor
-        ? placed.find((entry) => entry.id === id)?.rect
-        : (() => {
-          const column = Math.max(0, Math.min(columns - 1, columnById.get(id) ?? 2));
-          const itemWidth = currentMode === "overview" ? columnWidth : columnWidth;
-          const itemHeight = currentMode === "overview" ? columnWidth : item.getHeight();
-          const result = placeItem(
-            item,
-            column * (columnWidth + gap),
-            columnBottoms[column],
-            itemWidth,
-            itemHeight,
-          );
-          columnBottoms[column] = result.top + result.height + gap;
-          return result;
-        })();
-      slots.push(rect.left, rect.top);
-    });
-
-    const maxBottom = placed.reduce((bottom, { rect }) => Math.max(bottom, rect.top + rect.height), 0);
     callback({
       id: layoutId,
       items,
       slots,
-      styles: { width: `${width}px`, height: `${Math.max(maxBottom, 1)}px` },
+      styles: { width: `${width}px`, height: `${Math.max(top - gap, 1)}px` },
     });
   };
 
@@ -230,61 +217,12 @@ if (arrangeEnabled && gallery) {
   copyButton.textContent = "Copy order";
   const output = document.createElement("textarea");
   output.className = "arrange-output";
-  output.setAttribute("aria-label", "Gallery order code");
+  output.setAttribute("aria-label", "Gallery columns code");
   output.hidden = true;
   output.readOnly = true;
   toolbar.append(note, resetButton, randomizeButton, masonryButton, overviewButton, copyButton);
   gallery.before(toolbar, output);
 
-  const getPublishedColumns = () => {
-    const width = Math.max(gallery.getBoundingClientRect().width, 1);
-    if (getColumnCount(width) !== 3 || !grid) return columns.map((column) => [...column]);
-    const columnWidth = (width - gap * 2) / 3;
-    const publishedColumns = [[], [], []];
-    grid.getItems().forEach((item) => {
-      const position = item.getPosition();
-      const column = Math.max(0, Math.min(
-        2,
-        Math.round(position.left / Math.max(columnWidth + gap, 1)),
-      ));
-      publishedColumns[column].push({ id: getItemId(item), top: position.top });
-    });
-    return publishedColumns.map((column) => column
-      .sort((first, second) => first.top - second.top)
-      .map(({ id }) => id));
-  };
-
-  const syncColumnsFromLayout = () => {
-    const publishedColumns = getPublishedColumns();
-    const committedColumns = columns.map((column) => [...column]);
-    const stagedIds = new Set(unplaced);
-    const nextUnplaced = [];
-    const nextColumns = publishedColumns.map((column, columnIndex) => column.filter((id, index) => {
-      if (!stagedIds.has(id)) return true;
-      const stagedIndex = unplaced.indexOf(id);
-      const isStillStaged = columnIndex === 2
-        && index === committedColumns[2].length + stagedIndex;
-      if (isStillStaged) nextUnplaced.push(id);
-      return !isStillStaged;
-    }));
-    if (nextColumns.length === 3) columns = nextColumns;
-    unplaced = nextUnplaced;
-  };
-
-  const persist = () => {
-    localStorage.setItem(storageKey, JSON.stringify({
-      columns,
-      unplaced,
-      order: columns.flat(),
-      favorites: [...favorites],
-      pinned: [...pinned],
-      anchors,
-    }));
-  };
-  const save = () => {
-    syncColumnsFromLayout();
-    persist();
-  };
   const updateToggleButton = (button, active, activeLabel, inactiveLabel, activeText, inactiveText) => {
     button.classList.toggle("is-active", active);
     button.textContent = active ? activeText : inactiveText;
@@ -297,13 +235,6 @@ if (arrangeEnabled && gallery) {
   const updatePinButton = (button, id) => updateToggleButton(
     button, pinned.has(id), `Unpin ${id}`, `Pin ${id} in place`, "●", "○",
   );
-  const setLayout = (layout) => {
-    const overview = layout === "overview";
-    gallery.classList.toggle("is-overview", overview);
-    masonryButton.setAttribute("aria-pressed", String(!overview));
-    overviewButton.setAttribute("aria-pressed", String(overview));
-    grid.layout(true);
-  };
 
   getElements().forEach((item) => {
     item.style.position = "absolute";
@@ -318,8 +249,9 @@ if (arrangeEnabled && gallery) {
       if (favorites.has(id)) favorites.delete(id);
       else favorites.add(id);
       updateFavoriteButton(favoriteButton, id);
-      save();
+      persist();
     });
+
     const pinButton = document.createElement("button");
     pinButton.type = "button";
     pinButton.className = "arrange-pin-button";
@@ -327,179 +259,129 @@ if (arrangeEnabled && gallery) {
     updatePinButton(pinButton, id);
     pinButton.addEventListener("pointerdown", (event) => event.stopPropagation());
     pinButton.addEventListener("click", () => {
+      const grid = grids.find((candidate) => candidate.getItem(item));
+      const currentIndex = grid ? grid.getItems().indexOf(grid.getItem(item)) : -1;
+      const currentColumn = grids.indexOf(grid);
       if (pinned.has(id)) {
         pinned.delete(id);
-        delete anchors[id];
+        delete pinSlots[id];
       } else {
-        const rect = item.getBoundingClientRect();
-        const galleryRect = gallery.getBoundingClientRect();
-        const width = Math.max(galleryRect.width, 1);
-        anchors[id] = {
-          x: (rect.left - galleryRect.left) / width,
-          y: (rect.top - galleryRect.top) / width,
-          width: rect.width / width,
-        };
         pinned.add(id);
+        pinSlots[id] = {
+          column: currentColumn === -1 ? 0 : currentColumn,
+          index: Math.max(0, currentIndex),
+        };
       }
       updatePinButton(pinButton, id);
-      grid.layout(true);
-      save();
+      grids.forEach((candidate) => candidate.layout(true));
+      syncAndPersist();
     });
     item.append(favoriteButton, pinButton);
   });
 
-  grid = new Muuri(gallery, {
+  grids = columnGroups.map((column) => new Muuri(column, {
     items: ".gallery-item",
     dragEnabled: true,
     dragContainer: document.body,
+    dragSort: () => grids,
     dragStartPredicate: (item, event) => {
       if (pinned.has(getItemId(item))) return false;
       if (event.isFinal) return undefined;
       return event.distance >= 8 ? true : undefined;
     },
-    layout: createLayout,
+    layout: stackLayout,
     layoutOnResize: 150,
     layoutDuration: 250,
     dragRelease: { duration: 250 },
+  }));
+
+  const applyColumnsToGrids = () => {
+    isApplyingState = true;
+    grids.forEach((grid, index) => {
+      const itemsById = getItemsById(grid.getItems());
+      const ids = index === 2 ? [...columns[index], ...unplaced] : columns[index];
+      const orderedItems = ids.map((id) => itemsById.get(id)).filter(Boolean);
+      const currentItems = grid.getItems();
+      const isAlreadyOrdered = orderedItems.length === currentItems.length
+        && orderedItems.every((item, itemIndex) => item === currentItems[itemIndex]);
+      if (!isAlreadyOrdered) grid.sort(orderedItems, { layout: "instant" });
+    });
+    isApplyingState = false;
+  };
+
+  const setLayout = (layout) => {
+    const overview = layout === "overview";
+    gallery.classList.toggle("is-overview", overview);
+    masonryButton.setAttribute("aria-pressed", String(!overview));
+    overviewButton.setAttribute("aria-pressed", String(overview));
+    grids.forEach((grid) => grid.refreshItems().layout(true));
+  };
+
+  grids.forEach((grid) => {
+    grid.on("dragStart", () => {
+      isDragging = true;
+    });
+    grid.on("dragEnd", () => {
+      grids.forEach((candidate) => candidate.synchronize());
+      syncAndPersist();
+      isDragging = false;
+    });
+    grid.on("sort", () => {
+      grid.synchronize();
+      if (!isDragging && !isApplyingState) syncAndPersist();
+    });
+    grid.on("send", () => {
+      if (!isDragging && !isApplyingState) syncAndPersist();
+    });
+    grid.on("receive", () => {
+      if (!isDragging && !isApplyingState) syncAndPersist();
+    });
   });
 
-  grid.on("layoutEnd", () => {
-    const galleryRect = gallery.getBoundingClientRect();
-    const width = Math.max(galleryRect.width, 1);
-    const items = grid.getItems();
-    let changed = false;
-    items.forEach((item) => {
-      const id = getItemId(item);
-      if (!pinned.has(id) || isValidAnchor(anchors[id])) return;
-      const position = item.getPosition();
-      anchors[id] = { x: position.left / width, y: position.top / width, width: item.getWidth() / width };
-      changed = true;
-    });
-    if (changed) save();
-  });
   getElements().forEach((item) => {
     const image = item.querySelector("img");
     if (!image) return;
-    const refresh = () => grid.refreshItems().layout();
+    const refresh = () => grids.forEach((grid) => grid.refreshItems().layout());
     image.addEventListener("load", refresh, { once: true });
     image.addEventListener("error", refresh, { once: true });
     if (image.complete) refresh();
   });
 
-  const commitDrag = (draggedItem) => {
-    const draggedId = getItemId(draggedItem);
-    const draggedRect = draggedItem.getElement().getBoundingClientRect();
-    const galleryRect = gallery.getBoundingClientRect();
-    const width = Math.max(galleryRect.width, 1);
-    const columnWidth = (width - gap * 2) / 3;
-    const centerX = draggedRect.left + draggedRect.width / 2 - galleryRect.left;
-    const targetColumn = Math.max(0, Math.min(
-      2,
-      Math.floor(centerX / Math.max(columnWidth + gap, 1)),
-    ));
-    const targetTop = draggedRect.top - galleryRect.top;
-    const stagedIds = new Set(unplaced);
-    const workingColumns = getWorkingColumns().map((column) => column.filter((id) => id !== draggedId));
-    const itemsById = getItemsById(grid.getItems());
-    const targetItems = workingColumns[targetColumn]
-      .map((id) => itemsById.get(id))
-      .filter(Boolean)
-      .sort((first, second) => first.getPosition().top - second.getPosition().top);
-    const targetIndex = targetItems.findIndex((item) => {
-      const position = item.getPosition();
-      return position.top + item.getHeight() / 2 > targetTop;
+  const randomize = () => {
+    columns = columns.map((column) => {
+      const movable = column.filter((id) => !pinned.has(id));
+      const favoriteMovable = movable.filter((id) => favorites.has(id));
+      const remaining = movable.filter((id) => !favorites.has(id));
+      for (let index = remaining.length - 1; index > 0; index -= 1) {
+        const swapIndex = Math.floor(Math.random() * (index + 1));
+        [remaining[index], remaining[swapIndex]] = [remaining[swapIndex], remaining[index]];
+      }
+      const randomized = [...favoriteMovable, ...remaining];
+      let movableIndex = 0;
+      return column.map((id) => (
+        pinned.has(id) ? id : randomized[movableIndex++]
+      ));
     });
-    const insertionIndex = targetIndex === -1 ? workingColumns[targetColumn].length : targetIndex;
-    const draggedWasUnplaced = unplaced.includes(draggedId);
-
-    const stagedDrop = draggedWasUnplaced
-      && targetColumn === 2
-      && insertionIndex >= columns[2].length;
-    columns = workingColumns.map((column) => column.filter((id) => !stagedIds.has(id)));
-    unplaced = unplaced.filter((id) => id !== draggedId);
-    if (stagedDrop) {
-      const stagedIndex = Math.max(0, insertionIndex - columns[2].length);
-      unplaced.splice(Math.min(stagedIndex, unplaced.length), 0, draggedId);
-    } else {
-      const committedIndex = targetColumn === 2
-        ? Math.min(insertionIndex, columns[2].length)
-        : insertionIndex;
-      columns[targetColumn].splice(Math.min(committedIndex, columns[targetColumn].length), 0, draggedId);
-    }
-  };
-
-  grid.on("dragStart", () => {
-    isDragging = true;
-  });
-  grid.on("dragEnd", (item) => {
-    commitDrag(item);
-    grid.synchronize();
-    grid.layout(true);
-    persist();
-    isDragging = false;
-  });
-  grid.on("sort", () => {
-    grid.synchronize();
-    if (!isDragging) save();
-  });
-
-  const getCurrentItems = () => grid.getItems();
-  const sortByIds = (ids) => {
-    const itemsById = getItemsById(getCurrentItems());
-    grid.sort(ids.map((id) => itemsById.get(id)), { layout: "instant" });
-    grid.synchronize();
-  };
-  const snippet = () => {
-    syncColumnsFromLayout();
-    return `const galleryColumns = [\n${columns
-    .map((column) => `  [${column.map((id) => JSON.stringify(id)).join(", ")}]`)
-    .join(",\n")}\n];`;
+    syncAndPersist();
   };
 
   resetButton.addEventListener("click", () => {
-    favorites.clear();
-    pinned.clear();
-    anchors = {};
-    columns = sourceColumns.map((column) => [...column]);
-    unplaced = [...sourceUnplaced];
-    sortByIds(getWorkingColumns().flat());
-    getElements().forEach((item) => {
-      updateFavoriteButton(item.querySelector(".arrange-favorite-button"), item.dataset.imageId);
-      updatePinButton(item.querySelector(".arrange-pin-button"), item.dataset.imageId);
-    });
     localStorage.removeItem(storageKey);
-    localStorage.removeItem(legacyStorageKey);
-    setLayout("masonry");
-    output.hidden = true;
+    previousStorageKeys.forEach((key) => localStorage.removeItem(key));
+    window.location.reload();
   });
-
   randomizeButton.addEventListener("click", () => {
-    const currentOrder = getOrder();
-    const movable = currentOrder.filter((id) => !pinned.has(id));
-    const favoriteMovable = movable.filter((id) => favorites.has(id));
-    const remaining = movable.filter((id) => !favorites.has(id));
-    for (let index = remaining.length - 1; index > 0; index -= 1) {
-      const swapIndex = Math.floor(Math.random() * (index + 1));
-      [remaining[index], remaining[swapIndex]] = [remaining[swapIndex], remaining[index]];
-    }
-    const randomized = [...favoriteMovable, ...remaining];
-    const result = [];
-    let movableIndex = 0;
-    currentOrder.forEach((id) => {
-      result.push(pinned.has(id) ? id : randomized[movableIndex++]);
-    });
-    sortByIds(result);
-    save();
+    randomize();
     output.hidden = true;
   });
-
   masonryButton.addEventListener("click", () => setLayout("masonry"));
   overviewButton.addEventListener("click", () => setLayout("overview"));
-  setLayout("masonry");
 
   copyButton.addEventListener("click", async () => {
-    const text = snippet();
-    save();
+    syncAndPersist();
+    const text = `const galleryColumns = [\n${columns
+      .map((column) => `  [${column.map((id) => JSON.stringify(id)).join(", ")}]`)
+      .join(",\n")}\n];`;
     output.value = text;
     output.hidden = false;
     output.select();
@@ -511,4 +393,6 @@ if (arrangeEnabled && gallery) {
       copyButton.textContent = "Select and copy below";
     }
   });
+
+  setLayout("masonry");
 }
