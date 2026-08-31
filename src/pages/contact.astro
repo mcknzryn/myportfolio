@@ -1,16 +1,18 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+const pageTitle = "contact";
 ---
 
-<BaseLayout pageTitle="Contact" hidePageTitle={true}>
-  <main class="contact-page">
-    <h1>Contact</h1>
+<BaseLayout>
+
+  <div class="container">
+    <h1 id="pagetitle">{pageTitle}</h1>
     <div class="contact-content">
-      <p>For inquiries, collaborations, and print requests, get in touch.</p>
-      <p><a href="mailto:knockknock@mckenzieryan.co">hello@mckenzieryan.co</a></p>
-      <p><a href="https://www.instagram.com/thisspotstaken/">@thisspotstaken on Instagram</a></p>
+      <p>For all inquiries and requests: <a href="mailto:knockknock@mckenzieryan.co">hello@mckenzieryan.co</a></p>
+      <p>More on Instagram: <a href="https://www.instagram.com/thisspotstaken/">@thisspotstaken</a></p>
     </div>
-  </main>
+  </div>
+  
 </BaseLayout>
 
 <style>
