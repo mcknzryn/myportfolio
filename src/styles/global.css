@@ -54,6 +54,7 @@ html.dark { background-color: #0d0950; color: #fff; }
     --chrome-gutter: var(--page-gutter);
     --header-height: 5.25rem;
     --footer-height: 0rem;
+    --mobile-footer-clearance: calc(6rem + env(safe-area-inset-bottom));
   }
 
   body {
@@ -61,6 +62,10 @@ html.dark { background-color: #0d0950; color: #fff; }
     padding-left: var(--page-gutter);
     padding-right: var(--page-gutter);
     padding-bottom: 1.5rem;
+  }
+
+  body:not(.home-page) {
+    padding-bottom: calc(1.5rem + var(--mobile-footer-clearance));
   }
 
   body.home-page {
