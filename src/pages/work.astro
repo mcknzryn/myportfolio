@@ -57,7 +57,7 @@ const unplacedImageIds = allImageIds.filter((id) => !configuredGalleryIds.has(id
                   src={item.image}
                   alt={item.alt}
                   draggable={false}
-                  sizes="(max-width: 600px) 92vw, (max-width: 900px) 46vw, 25vw"
+                  sizes="(max-width: 900px) 30vw, 28vw"
                   loading="lazy"
                 />
               </figure>
@@ -75,7 +75,7 @@ const unplacedImageIds = allImageIds.filter((id) => !configuredGalleryIds.has(id
                   src={item.image}
                   alt={item.alt}
                   draggable={false}
-                  sizes="(max-width: 600px) 92vw, (max-width: 900px) 46vw, 25vw"
+                  sizes="(max-width: 900px) 30vw, 28vw"
                   loading="lazy"
                 />
               </figure>
@@ -280,47 +280,4 @@ const unplacedImageIds = allImageIds.filter((id) => !configuredGalleryIds.has(id
     opacity: 0.85;
   }
 
-  @media (max-width: 900px) {
-    .work-page {
-      padding-top: 1.5rem;
-    }
-
-    .gallery {
-      display: block;
-      column-count: 2;
-      column-gap: 1.5rem;
-    }
-
-    .gallery-column {
-      display: contents;
-    }
-
-    .gallery-item {
-      margin-bottom: 1.5rem;
-    }
-
-    :global(body.arrange-mode) .gallery-item {
-      width: calc((100% - 1.5rem) / 2);
-    }
-
-  }
-
-  @media (max-width: 600px) {
-    .work-page {
-      padding: 1.5rem 0 2rem;
-    }
-
-    .gallery {
-      column-count: 1;
-    }
-
-    .gallery-item {
-      margin-bottom: 1.25rem;
-    }
-
-    :global(body.arrange-mode) .gallery-item {
-      width: 100%;
-    }
-
-  }
 </style>
