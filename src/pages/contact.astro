@@ -1,6 +1,6 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-const pageTitle = "contact";
+const pageTitle = "get in touch...";
 ---
 
 <BaseLayout>
@@ -28,7 +28,7 @@ const pageTitle = "contact";
 
   #pagetitle {
     margin: 0;
-    padding: 0;
+    padding: 0 0 1rem;
     width: 100%;
     max-width: 100%;
     white-space: normal;
@@ -60,11 +60,15 @@ const pageTitle = "contact";
     .container { padding-top: 1.5rem; }
   }
 
-  @media (min-width: 1024px) {
+  @media (min-width: 768px) {
     .container,
     #pagetitle,
     .contact-content {
       text-align: right;
     }
+  }
+
+  @media (min-width: 1200px) {
+    .container { padding-top: clamp(1rem, 8vw, 10rem); }
   }
 </style>
