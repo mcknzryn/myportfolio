@@ -114,13 +114,8 @@ const pageTitle = "bio & cv";
       padding-right: 0;
     }
 
-    #pagetitle,
     #cv {
       grid-column: 2;
-    }
-
-    #pagetitle {
-      text-align: right;
     }
 
     #bio {
@@ -130,6 +125,19 @@ const pageTitle = "bio & cv";
 
     #cv {
       padding-top: clamp(1rem, 8vw, 10rem);
+      text-align: right;
+    }
+
+    #pagetitle {
+      display: none;
+    }
+
+    #cv h1 {
+      display: block;
+      margin: 0 0 clamp(2rem, 4vw, 4rem);
+      font-family: 'Avenir Black';
+      font-size: clamp(1.75rem, 5vw, 2.5rem);
+      line-height: 0.9;
       text-align: right;
     }
   }
@@ -163,17 +171,9 @@ const pageTitle = "bio & cv";
       font-size: 0.75rem;
     }
 
-    #pagetitle {
-      display: none;
-    }
-
     #cv h1 {
-      display: block;
       margin: 0 0 4rem;
-      font-family: 'Avenir Black';
       font-size: 2.5rem;
-      line-height: 0.9;
-      text-align: right;
     }
 
     #cv h3 {
