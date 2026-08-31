@@ -1,3 +1,5 @@
+/* root stores site-wide settings, similar to html */
+/* var(--font-weight-...) is a custom css property that defines weight */
 :root {
   --font-family: "avenir-lt-pro", sans-serif;
   --font-weight-light: 200;
