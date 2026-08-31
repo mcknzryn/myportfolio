@@ -115,6 +115,34 @@ const pageTitle = "Home Page";
     outline-offset: 4px;
   }
 
+  @media (min-width: 801px) and (max-width: 1024px) {
+    :global(body.home-page) {
+      padding-top: 0;
+      padding-bottom: 0;
+    }
+
+    .home-gallery {
+      height: calc(100svh - var(--header-height) - var(--footer-height));
+      margin-top: var(--header-height);
+      padding: 0;
+    }
+
+    .gallery-stage {
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+    }
+
+    .slide {
+      inset: 1.5rem 0;
+    }
+
+    .slide :global(img) {
+      max-width: 100%;
+      max-height: calc(100svh - var(--header-height) - var(--footer-height) - 3rem);
+    }
+  }
+
   @media (max-width: 800px) {
     .home-gallery {
       height: calc(100svh - var(--header-height) - var(--mobile-footer-clearance));
