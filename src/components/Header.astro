@@ -66,15 +66,18 @@
     .site-header {
       display: grid;
       grid-template-columns: 1fr auto;
-      min-height: var(--header-height);
-      padding: max(0.75rem, env(safe-area-inset-top)) var(--chrome-gutter) 0.75rem;
+      min-height: 0;
+      padding: max(0.5rem, env(safe-area-inset-top)) var(--chrome-gutter) 0.5rem;
       border-bottom: 1px solid currentColor;
     }
 
     .site-title {
       max-width: 8rem;
-      font-size: 30px;
-      line-height: 30px;
+      font-family: "Avenir Black", "Avenir", sans-serif;
+      font-size: 24px;
+      font-weight: normal;
+      line-height: 24px;
+      letter-spacing: -1px;
     }
 
     .mobile-break { display: inline; }

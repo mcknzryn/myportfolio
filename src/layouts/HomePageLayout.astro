@@ -28,7 +28,7 @@ const pageTitle = "Home Page";
           <Image
             src={item.image}
             alt={item.alt}
-            sizes="(max-width: 700px) 88vw, 700px"
+            sizes="(max-width: 800px) 100vw, 700px"
             loading={index === 0 ? "eager" : "lazy"}
           />
         </figure>
@@ -115,20 +115,29 @@ const pageTitle = "Home Page";
     outline-offset: 4px;
   }
 
-  @media (max-width: 700px) {
+  @media (max-width: 800px) {
     .home-gallery {
-      height: calc(100svh - 8rem);
-      padding: 0 0 3rem;
+      height: calc(100svh - var(--header-height) - var(--mobile-footer-clearance));
+      margin-top: var(--header-height);
+      padding: 0;
     }
 
     .gallery-stage {
       width: 100%;
-      height: min(68svh, 620px);
+      height: 100%;
+      min-height: 0;
+    }
+
+    .slide {
+      inset: var(--mobile-gallery-padding) 0;
     }
 
     .slide :global(img) {
-      max-width: 88vw;
-      max-height: calc(100svh - 11rem);
+      width: auto;
+      height: auto;
+      max-width: calc(100vw - var(--page-gutter) - var(--page-gutter));
+      max-height: calc(100svh - var(--header-height) - var(--mobile-footer-clearance) - var(--mobile-gallery-padding) - var(--mobile-gallery-padding));
+      object-fit: contain;
     }
 
     .gallery-control.previous {

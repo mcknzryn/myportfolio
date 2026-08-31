@@ -52,9 +52,10 @@ html.dark { background-color: #0d0950; color: #fff; }
   :root {
     --page-gutter: clamp(0.75rem, 4vw, 1.5rem);
     --chrome-gutter: var(--page-gutter);
-    --header-height: 5.25rem;
+    --header-height: calc(4rem + env(safe-area-inset-top));
     --footer-height: 0rem;
-    --mobile-footer-clearance: calc(6rem + env(safe-area-inset-bottom));
+    --mobile-footer-clearance: calc(4rem + env(safe-area-inset-bottom));
+    --mobile-gallery-padding: 1.5rem;
   }
 
   body {
@@ -69,7 +70,7 @@ html.dark { background-color: #0d0950; color: #fff; }
   }
 
   body.home-page {
-    padding-top: 4%;
+    padding-top: 0;
     padding-bottom: 0;
   }
 }
