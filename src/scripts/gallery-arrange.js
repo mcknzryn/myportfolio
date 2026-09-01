@@ -5,13 +5,8 @@ const gallery = document.querySelector(".gallery");
 const arrangeRequested = params.get("arrange") === "1";
 const desktopQuery = window.matchMedia("(min-width: 901px)");
 
-if (arrangeRequested && gallery && !desktopQuery.matches) {
-  desktopQuery.addEventListener("change", () => window.location.reload(), { once: true });
-}
-
 if (arrangeRequested && gallery && desktopQuery.matches) {
   document.body.classList.add("arrange-mode");
-  desktopQuery.addEventListener("change", () => window.location.reload(), { once: true });
 
   const storageKey = "mckenzieryan-work-gallery-state-v2";
   const previousStorageKeys = [

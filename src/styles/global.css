@@ -76,7 +76,7 @@ html.dark { background-color: #0d0950; color: #fff; }
   }
 
   body:not(.home-page) {
-    padding-bottom: calc(1.5rem + var(--mobile-footer-clearance));
+    padding-bottom: var(--mobile-footer-clearance);
   }
 
   body.home-page {

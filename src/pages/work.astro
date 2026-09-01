@@ -1,5 +1,5 @@
 ---
-import { Image } from "astro:assets";
+import { getImage, Image } from "astro:assets";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import type { ImageMetadata } from "astro";
 
@@ -24,10 +24,21 @@ const galleryFavorites: string[] = [];
 const galleryPinned: string[] = [];
 
 const imagesById = new Map(
-  Object.entries(imageModules).map(([path, module]) => {
+  await Promise.all(Object.entries(imageModules).map(async ([path, module]) => {
     const id = path.split("/").pop()?.replace(/\.[^.]+$/, "") ?? "";
-    return [id, { image: module.default, alt: id.replace(/[-_]/g, " ") }];
-  }),
+    const mobileImage = await getImage({
+      src: module.default,
+      widths: [320, 480, 640, 800],
+      quality: 70,
+      format: "webp",
+    });
+
+    return [id, {
+      image: module.default,
+      mobileImage,
+      alt: id.replace(/[-_]/g, " "),
+    }] as const;
+  })),
 );
 
 const allImageIds = [...imagesById.keys()].sort((first, second) => first.localeCompare(second));
@@ -53,13 +64,21 @@ const unplacedImageIds = allImageIds.filter((id) => !configuredGalleryIds.has(id
             const item = imagesById.get(id)!;
             return (
               <figure class="gallery-item" data-image-id={id}>
-                <Image
-                  src={item.image}
-                  alt={item.alt}
-                  draggable={false}
-                  sizes="(max-width: 900px) 30vw, 28vw"
-                  loading="lazy"
-                />
+                <picture>
+                  <source
+                    media="(max-width: 800px)"
+                    srcset={item.mobileImage.srcSet.attribute}
+                    sizes="30vw"
+                    type="image/webp"
+                  />
+                  <Image
+                    src={item.image}
+                    alt={item.alt}
+                    draggable={false}
+                    sizes="(max-width: 900px) 30vw, 28vw"
+                    loading="lazy"
+                  />
+                </picture>
               </figure>
             );
           })}
@@ -71,13 +90,21 @@ const unplacedImageIds = allImageIds.filter((id) => !configuredGalleryIds.has(id
             const item = imagesById.get(id)!;
             return (
               <figure class="gallery-item" data-image-id={id}>
-                <Image
-                  src={item.image}
-                  alt={item.alt}
-                  draggable={false}
-                  sizes="(max-width: 900px) 30vw, 28vw"
-                  loading="lazy"
-                />
+                <picture>
+                  <source
+                    media="(max-width: 800px)"
+                    srcset={item.mobileImage.srcSet.attribute}
+                    sizes="30vw"
+                    type="image/webp"
+                  />
+                  <Image
+                    src={item.image}
+                    alt={item.alt}
+                    draggable={false}
+                    sizes="(max-width: 900px) 30vw, 28vw"
+                    loading="lazy"
+                  />
+                </picture>
               </figure>
             );
           })}
@@ -272,6 +299,10 @@ const unplacedImageIds = allImageIds.filter((id) => !configuredGalleryIds.has(id
     transition: opacity 900ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
+  .gallery-item :global(picture) {
+    display: block;
+  }
+
   .gallery-item :global(img).is-revealed {
     opacity: 1;
   }
@@ -284,6 +315,12 @@ const unplacedImageIds = allImageIds.filter((id) => !configuredGalleryIds.has(id
     .work-page {
       padding-top: 3.5rem;
       padding-bottom: calc(3rem + var(--footer-height));
+    }
+  }
+
+  @media (max-width: 800px) {
+    .work-page {
+      padding-bottom: 1.5rem;
     }
   }
 

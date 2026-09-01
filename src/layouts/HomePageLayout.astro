@@ -1,6 +1,6 @@
 ---
 import BaseLayout from "./BaseLayout.astro";
-import { Image } from "astro:assets";
+import { getImage, Image } from "astro:assets";
 import type { ImageMetadata } from "astro";
 
 const imageModules = import.meta.glob<{ default: ImageMetadata }>(
@@ -8,14 +8,20 @@ const imageModules = import.meta.glob<{ default: ImageMetadata }>(
   { eager: true },
 );
 
-const gallery = Object.entries(imageModules)
+const gallery = await Promise.all(Object.entries(imageModules)
   .sort(([first], [second]) => first.localeCompare(second))
-  .map(([path, module]) => {
+  .map(async ([path, module]) => {
     const filename = path.split("/").pop()?.replace(/\.[^.]+$/, "") ?? "";
     const alt = filename.replace(/[-_]/g, " ");
+    const mobileImage = await getImage({
+      src: module.default,
+      widths: [400, 640, 800, 1080, 1280],
+      quality: 70,
+      format: "webp",
+    });
 
-    return { image: module.default, alt };
-  });
+    return { image: module.default, mobileImage, alt };
+  }));
 
 const pageTitle = "Home Page";
 ---
@@ -25,12 +31,20 @@ const pageTitle = "Home Page";
     <div class="gallery-stage" tabindex="0">
       {gallery.map((item, index) => (
         <figure class:list={["slide", { active: index === 0 }]}>
-          <Image
-            src={item.image}
-            alt={item.alt}
-            sizes="(max-width: 800px) 100vw, 700px"
-            loading={index === 0 ? "eager" : "lazy"}
-          />
+          <picture>
+            <source
+              media="(max-width: 800px)"
+              srcset={item.mobileImage.srcSet.attribute}
+              sizes="92vw"
+              type="image/webp"
+            />
+            <Image
+              src={item.image}
+              alt={item.alt}
+              sizes="(max-width: 800px) 100vw, 700px"
+              loading={index === 0 ? "eager" : "lazy"}
+            />
+          </picture>
         </figure>
       ))}
 
@@ -84,6 +98,10 @@ const pageTitle = "Home Page";
     width: auto;
     height: auto;
     object-fit: contain;
+  }
+
+  .slide :global(picture) {
+    display: block;
   }
 
   .gallery-control {
