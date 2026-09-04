@@ -1,0 +1,324 @@
+---
+import { Image } from "astro:assets";
+import { homePhotos } from "../data/photos";
+
+const slides = homePhotos;
+---
+
+<section class="home-gallery" aria-label="Photography slideshow">
+  <div class="gallery-stage" data-slideshow>
+    {
+      slides.map((slide, index) => (
+        <figure
+          class:list={["slide", { active: index === 0 }]}
+          aria-hidden={index === 0 ? "false" : "true"}
+        >
+          <picture>
+            <Image
+              src={slide.image}
+              alt={slide.alt}
+              widths={[320, 480, 640, 800, 1080, 1280]}
+              sizes="(max-width: 800px) calc(100vw - (2 * var(--page-gutter))), 700px"
+              quality={70}
+              format="webp"
+              loading={index === 0 ? "eager" : "lazy"}
+              fetchpriority={index === 0 ? "high" : "auto"}
+            />
+          </picture>
+        </figure>
+      ))
+    }
+
+    <button
+      class="gallery-control previous"
+      type="button"
+      aria-label="Previous image"
+    >
+      <span aria-hidden="true">‹</span>
+    </button>
+    <button class="gallery-control next" type="button" aria-label="Next image">
+      <span aria-hidden="true">›</span>
+    </button>
+  </div>
+</section>
+
+<style>
+  .home-gallery {
+    display: grid;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    padding: 1.5rem var(--page-gutter);
+    place-items: center;
+  }
+
+  .gallery-stage {
+    position: relative;
+    display: grid;
+    width: min(100%, 1000px);
+    height: min(100%, 820px);
+    min-height: 0;
+    outline: none;
+    place-items: center;
+  }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    margin: 0;
+    opacity: 0;
+    pointer-events: none;
+    place-items: center;
+    transition: opacity 700ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .slide.active {
+    opacity: 1;
+  }
+
+  .slide :global(picture) {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .slide :global(img) {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: min(700px, 100%);
+    max-height: 100%;
+    object-fit: contain;
+  }
+
+  .gallery-control {
+    position: absolute;
+    top: 0;
+    z-index: 2;
+    display: none;
+    width: 28%;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: transparent;
+    cursor: pointer;
+    font-size: 0;
+  }
+
+  .gallery-stage[data-ready="true"] .gallery-control {
+    display: block;
+  }
+
+  .gallery-control.previous {
+    left: 0;
+  }
+
+  .gallery-control.next {
+    right: 0;
+  }
+
+  .gallery-control:focus-visible {
+    outline: 1px solid currentColor;
+    outline-offset: 4px;
+  }
+
+  @media (min-width: 801px) {
+    .gallery-control {
+      width: var(--gallery-control-width, 0px);
+    }
+
+    .gallery-control.previous {
+      left: var(--gallery-control-left, 0px);
+    }
+
+    .gallery-control.next {
+      right: var(--gallery-control-right, 0px);
+    }
+  }
+
+  @media (max-width: 800px) {
+    .home-gallery {
+      padding-block: var(--mobile-gallery-padding);
+    }
+
+    .gallery-stage {
+      width: 100%;
+    }
+
+    .slide :global(img) {
+      max-width: 100%;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .slide {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  const stage = document.querySelector<HTMLElement>("[data-slideshow]");
+
+  if (stage) {
+    const slides = Array.from(stage.querySelectorAll<HTMLElement>(".slide"));
+    const previousButton = stage.querySelector<HTMLButtonElement>(".previous");
+    const nextButton = stage.querySelector<HTMLButtonElement>(".next");
+    const desktopQuery = window.matchMedia("(min-width: 801px)");
+    const reducedMotionQuery = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    );
+    const desktopControlMargin = 32;
+    const desktopCenterGap = 160;
+    let currentIndex = Math.max(
+      0,
+      slides.findIndex((slide) => slide.classList.contains("active")),
+    );
+    let autoplay: number | undefined;
+    let resumeTimeout: number | undefined;
+    let touchStartX = 0;
+
+    const updateDesktopControls = () => {
+      if (!desktopQuery.matches) {
+        stage.style.removeProperty("--gallery-control-width");
+        stage.style.removeProperty("--gallery-control-left");
+        stage.style.removeProperty("--gallery-control-right");
+        return;
+      }
+
+      const activeImage =
+        slides[currentIndex]?.querySelector<HTMLImageElement>("img");
+      if (!activeImage) return;
+
+      const stageRect = stage.getBoundingClientRect();
+      const imageRect = activeImage.getBoundingClientRect();
+      const imageLeft = Math.max(
+        0,
+        imageRect.left - stageRect.left - desktopControlMargin,
+      );
+      const imageRight = Math.max(
+        0,
+        stageRect.right - imageRect.right - desktopControlMargin,
+      );
+      const controlWidth = Math.max(
+        0,
+        Math.min(
+          imageRect.width / 2 + desktopControlMargin - desktopCenterGap / 2,
+          stageRect.width / 2,
+        ),
+      );
+
+      stage.style.setProperty("--gallery-control-width", `${controlWidth}px`);
+      stage.style.setProperty("--gallery-control-left", `${imageLeft}px`);
+      stage.style.setProperty("--gallery-control-right", `${imageRight}px`);
+    };
+
+    const scheduleDesktopControlUpdate = () =>
+      window.requestAnimationFrame(updateDesktopControls);
+
+    const showSlide = (nextIndex: number) => {
+      if (slides.length === 0) return;
+      currentIndex = (nextIndex + slides.length) % slides.length;
+      slides.forEach((slide, index) => {
+        const active = index === currentIndex;
+        slide.classList.toggle("active", active);
+        slide.setAttribute("aria-hidden", String(!active));
+      });
+      scheduleDesktopControlUpdate();
+    };
+
+    const canAutoplay = () =>
+      slides.length > 1 &&
+      !document.hidden &&
+      !reducedMotionQuery.matches &&
+      !stage.matches(":focus-within");
+
+    const startAutoplay = () => {
+      if (canAutoplay() && autoplay === undefined) {
+        autoplay = window.setInterval(() => showSlide(currentIndex + 1), 2500);
+      }
+    };
+
+    const stopAutoplay = () => {
+      if (autoplay !== undefined) {
+        window.clearInterval(autoplay);
+        autoplay = undefined;
+      }
+    };
+
+    const resumeAutoplayAfterClick = () => {
+      stopAutoplay();
+      if (resumeTimeout !== undefined) window.clearTimeout(resumeTimeout);
+      resumeTimeout = window.setTimeout(() => {
+        resumeTimeout = undefined;
+        startAutoplay();
+      }, 1000);
+    };
+
+    previousButton?.addEventListener("click", () => {
+      showSlide(currentIndex - 1);
+      resumeAutoplayAfterClick();
+    });
+
+    nextButton?.addEventListener("click", () => {
+      showSlide(currentIndex + 1);
+      resumeAutoplayAfterClick();
+    });
+
+    stage.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+        event.preventDefault();
+        showSlide(currentIndex + (event.key === "ArrowLeft" ? -1 : 1));
+      }
+    });
+
+    stage.addEventListener("focusin", stopAutoplay);
+    stage.addEventListener("focusout", () => window.setTimeout(startAutoplay));
+
+    stage.addEventListener(
+      "touchstart",
+      (event) => {
+        touchStartX = event.changedTouches[0]?.clientX ?? 0;
+        stopAutoplay();
+      },
+      { passive: true },
+    );
+
+    stage.addEventListener(
+      "touchend",
+      (event) => {
+        const touchEndX = event.changedTouches[0]?.clientX ?? touchStartX;
+        const distance = touchEndX - touchStartX;
+        if (Math.abs(distance) > 40)
+          showSlide(currentIndex + (distance < 0 ? 1 : -1));
+        startAutoplay();
+      },
+      { passive: true },
+    );
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) stopAutoplay();
+      else startAutoplay();
+    });
+    reducedMotionQuery.addEventListener("change", () => {
+      stopAutoplay();
+      startAutoplay();
+    });
+    desktopQuery.addEventListener("change", scheduleDesktopControlUpdate);
+    window.addEventListener("resize", scheduleDesktopControlUpdate);
+    slides.forEach((slide) => {
+      slide
+        .querySelector<HTMLImageElement>("img")
+        ?.addEventListener("load", scheduleDesktopControlUpdate);
+    });
+
+    stage.tabIndex = 0;
+    stage.dataset.ready = "true";
+    scheduleDesktopControlUpdate();
+    startAutoplay();
+  }
+</script>

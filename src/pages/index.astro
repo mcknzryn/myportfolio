@@ -1,7 +1,8 @@
 ---
-import HomePageLayout from "../layouts/HomePageLayout.astro";
+import HomeSlideshow from "../components/HomeSlideshow.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
 ---
 
-<HomePageLayout>
-
-</HomePageLayout>
+<BaseLayout title="Home" mode="viewport">
+  <HomeSlideshow />
+</BaseLayout>

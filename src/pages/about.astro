@@ -1,42 +1,60 @@
 ---
+import { Image } from "astro:assets";
+import headshot from "../assets/profile/headshot.jpeg";
 import BaseLayout from "../layouts/BaseLayout.astro";
 const pageTitle = "bio & cv";
 ---
 
-<BaseLayout>
-
-<div class="container">
+<BaseLayout title="Bio & CV" mode="document">
+  <div class="container">
     <h1 id="pagetitle">{pageTitle}</h1>
     <div id="bio">
-        <p><b class="bio-name"><i>McKenzie Ryan</i></b> is a lifestyle photographer based in New York City working across digital and analog mediums. Originally from the Midwest and shaped by her time in California, McKenzie brings a refined eye to commercial work. Her practice bridges documentary and editorial approaches, creating carefully composed imagery rooted in authentic storytelling, intentional light, and curated aesthetics.</p>
-        <img src="/assets/images/website-headshot.jpeg" alt="McKenzie Ryan" />
-   
+      <p>
+        <b class="bio-name"><i>McKenzie Ryan</i></b> is a lifestyle photographer based
+        in New York City working across digital and analog mediums. Originally from
+        the Midwest and shaped by her time in California, McKenzie brings a refined
+        eye to commercial work. Her practice bridges documentary and editorial approaches,
+        creating carefully composed imagery rooted in authentic storytelling, intentional
+        light, and curated aesthetics.
+      </p>
+      <Image
+        src={headshot}
+        alt="Portrait of McKenzie Ryan"
+        widths={[300, 600]}
+        sizes="(max-width: 800px) min(100vw - 3rem, 300px), 300px"
+        loading="eager"
+      />
     </div>
 
     <div id="cv">
-        <h1>bio & cv</h1>
-    <ul class="education">
+      <h1>bio & cv</h1>
+      <ul class="education">
         <li><h3>Education</h3></li>
         <li>University of California San Diego, 2022-2024</li>
         <li>University of Iowa, 2019-2021</li>
-    </ul>
-<br>
-    <ul class="exhibitions">
+      </ul>
+      <br />
+      <ul class="exhibitions">
         <li><h3>Exhibitions</h3></li>
         <li>Flora and Fauna Photo Exhibition, Price Center, San Diego, 2024</li>
-        <li>Mixed Media in Studio Exhibition, Adam D. Kamil Gallery, San Diego, 2023</li>
-        <li>Black & White Analog Photo Gallery, Vafhalla Gallery, San Diego, 2023</li>
+        <li>
+          Mixed Media in Studio Exhibition, Adam D. Kamil Gallery, San Diego,
+          2023
+        </li>
+        <li>
+          Black & White Analog Photo Gallery, Vafhalla Gallery, San Diego, 2023
+        </li>
         <li>Framing Yosemite Photo Gallery, Green Room, Upland, 2021</li>
         <li>Baseball Short Film Screening, Phoenix Theater, Iowa, 2018</li>
         <li>One Band Short Film Screening, Phoenix Theater, Iowa, 2017</li>
-    </ul>
-<br>
-    <ul class="awards">
+      </ul>
+      <br />
+      <ul class="awards">
         <li><h3>Awards</h3></li>
         <li>Finalist, Mary Thomas Prappas Ethics Essay Contest, 2021</li>
-    </ul>
+      </ul>
     </div>
-</div>
+  </div>
 </BaseLayout>
 
 <style>
@@ -47,12 +65,14 @@ const pageTitle = "bio & cv";
     width: 100%;
     max-width: 1600px;
     margin: 0 auto;
-    padding: 0 0 3.75rem;
     font-family: inherit;
     font-size: clamp(0.875rem, 1.2vw, 1rem);
+    padding: 1.5rem 0 1.5rem;
   }
 
-  .bio-name { font-weight: var(--font-weight-heavy); }
+  .bio-name {
+    font-weight: 700;
+  }
 
   #pagetitle {
     margin: 0;
@@ -120,7 +140,7 @@ const pageTitle = "bio & cv";
 
     #bio {
       grid-column: 1;
-      grid-row: 1 / span 2;
+      grid-row: 1;
     }
 
     #cv {
@@ -144,9 +164,6 @@ const pageTitle = "bio & cv";
   @media (max-width: 800px) {
     .container {
       gap: 1.5rem;
-      padding-top: 1.5rem;
-      padding-right: 0;
-      padding-bottom: 2rem;
     }
 
     #bio img {
@@ -158,15 +175,10 @@ const pageTitle = "bio & cv";
     }
   }
 
-  @media (min-width: 801px) and (max-width: 1199px) {
-    .container { padding-top: 3.5rem; }
-  }
-
   @media (min-width: 1200px) {
     .container {
       grid-template-columns: minmax(0, 450px) minmax(0, 600px);
       justify-content: space-between;
-      padding-top: 1.5rem;
       font-size: 0.75rem;
     }
 
@@ -179,5 +191,4 @@ const pageTitle = "bio & cv";
       font-size: 0.875rem;
     }
   }
-
 </style>

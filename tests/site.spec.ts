@@ -1,0 +1,222 @@
+import { expect, test } from "@playwright/test";
+
+const documentRoutes = ["/work/", "/about/", "/contact/"] as const;
+
+test.beforeEach(async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+});
+
+test("Home is contained by its viewport shell", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator(".slide.active img")).toBeVisible();
+
+  const geometry = await page.evaluate(() => {
+    const bounds = (selector: string) => {
+      const rectangle = document
+        .querySelector(selector)
+        ?.getBoundingClientRect();
+      return rectangle
+        ? {
+            top: rectangle.top,
+            bottom: rectangle.bottom,
+            height: rectangle.height,
+          }
+        : undefined;
+    };
+    return {
+      shell: bounds(".site-shell"),
+      header: bounds(".site-header"),
+      image: bounds(".slide.active img"),
+      footer: bounds(".site-footer"),
+      viewportHeight: window.innerHeight,
+      documentHeight: document.documentElement.scrollHeight,
+    };
+  });
+
+  expect(geometry.shell?.height).toBeCloseTo(geometry.viewportHeight, 0);
+  expect(geometry.documentHeight).toBeLessThanOrEqual(
+    geometry.viewportHeight + 1,
+  );
+  expect(geometry.image?.top).toBeGreaterThanOrEqual(
+    (geometry.header?.bottom ?? 0) - 1,
+  );
+  expect(geometry.image?.bottom).toBeLessThanOrEqual(
+    (geometry.footer?.top ?? Infinity) + 1,
+  );
+  expect(geometry.footer?.bottom).toBeLessThanOrEqual(
+    geometry.viewportHeight + 1,
+  );
+});
+
+test("slideshow controls and keyboard navigation change the active photo", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const stage = page.locator("[data-slideshow]");
+  await expect(stage).toHaveAttribute("data-ready", "true");
+  const initialAlt = await page
+    .locator(".slide.active img")
+    .getAttribute("alt");
+
+  await page.getByRole("button", { name: "Next image" }).click();
+  await expect(page.locator(".slide.active img")).not.toHaveAttribute(
+    "alt",
+    initialAlt ?? "",
+  );
+
+  await stage.focus();
+  const secondAlt = await page.locator(".slide.active img").getAttribute("alt");
+  await page.keyboard.press("ArrowLeft");
+  await expect(page.locator(".slide.active img")).not.toHaveAttribute(
+    "alt",
+    secondAlt ?? "",
+  );
+});
+
+for (const route of documentRoutes) {
+  test(`${route} clears the fixed header and reaches its footer`, async ({
+    page,
+  }) => {
+    await page.goto(route);
+    const firstContent = route === "/work/" ? ".work-page" : ".container";
+    const geometry = await page.evaluate((selector) => {
+      const header = document
+        .querySelector(".site-header")
+        ?.getBoundingClientRect();
+      const content = document.querySelector(selector)?.getBoundingClientRect();
+      return {
+        headerPosition: getComputedStyle(
+          document.querySelector(".site-header")!,
+        ).position,
+        headerBottom: header?.bottom,
+        contentTop: content?.top,
+      };
+    }, firstContent);
+
+    expect(geometry.headerPosition).toBe("fixed");
+    expect(geometry.contentTop).toBeGreaterThanOrEqual(
+      (geometry.headerBottom ?? 0) - 1,
+    );
+
+    await page.locator(".site-footer").scrollIntoViewIfNeeded();
+    await expect(page.locator(".site-footer")).toBeInViewport();
+  });
+}
+
+test("mobile navigation opens accessibly and closes with Escape", async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    !testInfo.project.name.includes("phone"),
+    "Phone-specific interaction",
+  );
+  await page.goto("/");
+  const menu = page.locator(".mobile-menu");
+  await menu.locator("summary").click();
+  await expect(menu).toHaveAttribute("open", "");
+  await expect(menu.getByRole("link", { name: "WORK" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(menu).not.toHaveAttribute("open", "");
+});
+
+test("images load successfully", async ({ page }, testInfo) => {
+  test.skip(
+    testInfo.project.name !== "chromium-desktop",
+    "The geometry suite loads representative images in every browser",
+  );
+  await page.goto("/work/");
+  const firstImageInEachColumn = page.locator(
+    ".gallery-column > :first-child img",
+  );
+  await expect(firstImageInEachColumn).toHaveCount(3);
+  for (const image of await firstImageInEachColumn.all()) {
+    await expect(image).toBeVisible();
+    await expect
+      .poll(
+        () =>
+          image.evaluate((element: HTMLImageElement) =>
+            Boolean(element.complete && element.naturalWidth),
+          ),
+        { timeout: 15_000 },
+      )
+      .toBe(true);
+  }
+});
+
+test("Arrange mode uses canonical photo IDs in development", async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    testInfo.project.name !== "chromium-desktop",
+    "Desktop development tool",
+  );
+  await page.goto("/work/?arrange=1");
+  await expect(
+    page.getByText("Arrange mode — drag images to reorder"),
+  ).toBeVisible();
+  await expect(page.locator(".gallery-item[data-image-id]")).toHaveCount(33);
+});
+
+test("content and mobile navigation work without JavaScript", async ({
+  browser,
+  baseURL,
+}, testInfo) => {
+  test.skip(
+    testInfo.project.name !== "webkit-phone",
+    "No-JavaScript mobile check",
+  );
+  const context = await browser.newContext({
+    javaScriptEnabled: false,
+    baseURL,
+  });
+  const page = await context.newPage();
+  await page.goto("/");
+  await expect(page.locator(".slide.active img")).toBeVisible();
+  await expect(page.getByRole("link", { name: /McKenzie Ryan/ })).toBeVisible();
+  const menu = page.locator(".mobile-menu");
+  await menu.locator("summary").click();
+  await expect(menu.getByRole("link", { name: "WORK" })).toBeVisible();
+  await context.close();
+});
+
+test("font failure does not break document geometry", async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    testInfo.project.name !== "chromium-desktop",
+    "Representative fallback-font check",
+  );
+  await page.route(/https:\/\/(use|p)\.typekit\.net\/.*/, (route) =>
+    route.abort(),
+  );
+  await page.goto("/contact/");
+  await expect(page.locator(".container")).toBeVisible();
+  await expect(page.locator(".site-footer")).toBeAttached();
+});
+
+test("reviewed Chromium viewport snapshots", async ({ page }, testInfo) => {
+  test.skip(
+    testInfo.project.name !== "chromium-desktop",
+    "Reviewed in Chromium desktop",
+  );
+  await page.route(/https:\/\/(use|p)\.typekit\.net\/.*/, (route) =>
+    route.abort(),
+  );
+  await page.goto("/");
+  await expect(page).toHaveScreenshot("home.png");
+  await page.goto("/work/");
+  await expect
+    .poll(
+      () =>
+        page
+          .locator(".gallery-column > :first-child img")
+          .evaluateAll((images) =>
+            (images as HTMLImageElement[]).every(
+              (image) => image.complete && image.naturalWidth > 0,
+            ),
+          ),
+      { timeout: 15_000 },
+    )
+    .toBe(true);
+  await expect(page).toHaveScreenshot("work.png");
+});

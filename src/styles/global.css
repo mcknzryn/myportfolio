@@ -1,90 +1,101 @@
-/* root stores site-wide settings, similar to html */
-/* var(--font-weight-...) is a custom css property that defines weight */
 :root {
-  --font-family: "avenir-lt-pro", sans-serif;
+  --font-sans:
+    "avenir-lt-pro", "Avenir Next", Avenir, "Helvetica Neue", Arial, sans-serif;
   --font-weight-light: 200;
   --font-weight-book: 300;
   --font-weight-roman: 400;
   --font-weight-heavy: 700;
   --font-weight-black: 800;
-  --page-gutter: clamp(1rem, 4vw, 4rem);
-  --chrome-gutter: 4%;
-  --header-height: 3.5rem;
-  --footer-height: 3.5rem;
+  --page-gutter: 2rem;
+  --chrome-inline-padding: 2rem;
+  --header-height: 3.75rem;
+  --mobile-gallery-padding: 1.5rem;
+  --focus-color: #2457ff;
+  font-family: var(--font-sans);
+  font-synthesis: none;
+  font-weight: var(--font-weight-book);
+  line-height: 1.4;
+  color: #000;
+  background: #fff;
 }
 
-* { box-sizing: border-box; }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
 
-html {
-  background-color: #fff;
-  color: #000;
-  font-family: var(--font-family);
-  font-weight: var(--font-weight-book);
-  overflow-x: hidden;
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: #fff;
 }
 
 body {
-  width: 100%;
-  min-width: 0;
-  margin: 0 auto;
-  padding: 4%;
-  overflow-x: hidden;
+  min-width: 20rem;
 }
 
-body.home-page {
-  overflow: hidden;
+button,
+input,
+textarea,
+select {
+  font: inherit;
 }
 
-h1, h2, h3, p { overflow-wrap: anywhere; }
-
-h1, h2, h3 {
-  font-family: var(--font-family);
-  font-weight: var(--font-weight-black);
+a {
+  color: inherit;
+  text-decoration: none;
 }
 
-b, strong { font-weight: var(--font-weight-heavy); }
-
-h1 {
-  margin: 2% 0;
-  font-size: clamp(1.75rem, 5vw, 2.5rem);
+img,
+picture {
+  display: block;
+  max-width: 100%;
 }
 
-a { color: inherit; }
-
-a:focus-visible, button:focus-visible {
-  outline: 2px solid currentColor;
-  outline-offset: 4px;
+:focus-visible {
+  outline: 2px solid var(--focus-color);
+  outline-offset: 3px;
 }
 
-html.dark { background-color: #0d0950; color: #fff; }
+.skip-link {
+  position: fixed;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 1000;
+  padding: 0.5rem 0.75rem;
+  transform: translateY(-150%);
+  background: #fff;
+  box-shadow: 0 0 0 1px #000;
+}
 
-@media (max-width: 800px) {
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+@media (max-width: 1024px) {
   :root {
-    --page-gutter: clamp(0.75rem, 4vw, 1.5rem);
-    --chrome-gutter: var(--page-gutter);
-    --header-height: calc(4rem + env(safe-area-inset-top));
-    --footer-height: 0rem;
-    --mobile-footer-clearance: calc(4rem + env(safe-area-inset-bottom));
-    --mobile-gallery-padding: 1.5rem;
-  }
-
-  body {
-    padding-top: var(--header-height);
-    padding-left: var(--page-gutter);
-    padding-right: var(--page-gutter);
-    padding-bottom: 1.5rem;
-  }
-
-  body:not(.home-page) {
-    padding-bottom: var(--mobile-footer-clearance);
-  }
-
-  body.home-page {
-    padding-top: 0;
-    padding-bottom: 0;
+    --page-gutter: 1.5rem;
+    --chrome-inline-padding: 1.5rem;
+    --header-height: calc(4rem + env(safe-area-inset-top, 0px));
   }
 }
 
-@media (min-width: 1600px) {
-  :root { --page-gutter: 4rem; }
+@media (min-width: 1440px) {
+  :root {
+    --page-gutter: 3rem;
+    --chrome-inline-padding: 3rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

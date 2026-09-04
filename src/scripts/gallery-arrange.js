@@ -14,11 +14,17 @@ if (arrangeRequested && gallery && desktopQuery.matches) {
     "mckenzieryan-work-gallery-order",
   ];
   const storageVersion = 2;
-  const columnGroups = [...gallery.querySelectorAll(":scope > .gallery-column")];
+  const columnGroups = [
+    ...gallery.querySelectorAll(":scope > .gallery-column"),
+  ];
   const unplacedGroup = gallery.querySelector(":scope > .gallery-unplaced");
   const configuredColumns = JSON.parse(gallery.dataset.galleryColumns || "[]");
-  const configuredUnplaced = JSON.parse(gallery.dataset.galleryUnplaced || "[]");
-  const configuredFavorites = JSON.parse(gallery.dataset.galleryFavorites || "[]");
+  const configuredUnplaced = JSON.parse(
+    gallery.dataset.galleryUnplaced || "[]",
+  );
+  const configuredFavorites = JSON.parse(
+    gallery.dataset.galleryFavorites || "[]",
+  );
   const configuredPinned = JSON.parse(gallery.dataset.galleryPinned || "[]");
 
   if (columnGroups.length !== 3) {
@@ -29,22 +35,28 @@ if (arrangeRequested && gallery && desktopQuery.matches) {
   const unplacedElements = [...(unplacedGroup?.children || [])];
   const allElements = [...itemElements, ...unplacedElements];
   const sourceOrder = allElements.map((item) => item.dataset.imageId);
-  const validIds = (ids) => Array.isArray(ids)
-    && new Set(ids).size === ids.length
-    && ids.every((id) => sourceOrder.includes(id));
-  const validColumns = (columns) => Array.isArray(columns)
-    && columns.length === 3
-    && columns.every(validIds)
-    && validIds(columns.flat());
-  const validPinSlots = (slots) => slots
-    && typeof slots === "object"
-    && !Array.isArray(slots)
-    && Object.values(slots).every((slot) => slot
-      && Number.isInteger(slot.column)
-      && Number.isInteger(slot.index)
-      && slot.column >= 0
-      && slot.column < 3
-      && slot.index >= 0);
+  const validIds = (ids) =>
+    Array.isArray(ids) &&
+    new Set(ids).size === ids.length &&
+    ids.every((id) => sourceOrder.includes(id));
+  const validColumns = (columns) =>
+    Array.isArray(columns) &&
+    columns.length === 3 &&
+    columns.every(validIds) &&
+    validIds(columns.flat());
+  const validPinSlots = (slots) =>
+    slots &&
+    typeof slots === "object" &&
+    !Array.isArray(slots) &&
+    Object.values(slots).every(
+      (slot) =>
+        slot &&
+        Number.isInteger(slot.column) &&
+        Number.isInteger(slot.index) &&
+        slot.column >= 0 &&
+        slot.column < 3 &&
+        slot.index >= 0,
+    );
 
   const sourceColumns = validColumns(configuredColumns)
     ? configuredColumns.map((column) => [...column])
@@ -53,8 +65,12 @@ if (arrangeRequested && gallery && desktopQuery.matches) {
     ? configuredUnplaced.filter((id) => !sourceColumns.flat().includes(id))
     : sourceOrder.filter((id) => !sourceColumns.flat().includes(id));
 
-  let favorites = validIds(configuredFavorites) ? new Set(configuredFavorites) : new Set();
-  let pinned = validIds(configuredPinned) ? new Set(configuredPinned) : new Set();
+  let favorites = validIds(configuredFavorites)
+    ? new Set(configuredFavorites)
+    : new Set();
+  let pinned = validIds(configuredPinned)
+    ? new Set(configuredPinned)
+    : new Set();
   let columns = sourceColumns.map((column) => [...column]);
   let unplaced = [...sourceUnplaced];
   let pinSlots = {};
@@ -69,11 +85,15 @@ if (arrangeRequested && gallery && desktopQuery.matches) {
     savedState = null;
   }
 
-  if (savedState?.version === storageVersion
-    && validColumns(savedState.columns)
-    && validIds(savedState.unplaced)) {
+  if (
+    savedState?.version === storageVersion &&
+    validColumns(savedState.columns) &&
+    validIds(savedState.unplaced)
+  ) {
     const savedIds = savedState.columns.flat();
-    const savedUnplaced = savedState.unplaced.filter((id) => !savedIds.includes(id));
+    const savedUnplaced = savedState.unplaced.filter(
+      (id) => !savedIds.includes(id),
+    );
     const allSavedIds = [...savedIds, ...savedUnplaced];
     if (allSavedIds.length === sourceOrder.length && validIds(allSavedIds)) {
       columns = savedState.columns.map((column) => [...column]);
@@ -85,11 +105,16 @@ if (arrangeRequested && gallery && desktopQuery.matches) {
     savedState = null;
   }
 
-  if (savedState && validIds(savedState.favorites)) favorites = new Set(savedState.favorites);
-  if (savedState && validIds(savedState.pinned)) pinned = new Set(savedState.pinned);
-  if (savedState && validPinSlots(savedState.pinSlots)) pinSlots = savedState.pinSlots;
+  if (savedState && validIds(savedState.favorites))
+    favorites = new Set(savedState.favorites);
+  if (savedState && validIds(savedState.pinned))
+    pinned = new Set(savedState.pinned);
+  if (savedState && validPinSlots(savedState.pinSlots))
+    pinSlots = savedState.pinSlots;
 
-  const itemsById = new Map(allElements.map((item) => [item.dataset.imageId, item]));
+  const itemsById = new Map(
+    allElements.map((item) => [item.dataset.imageId, item]),
+  );
   const placeElements = () => {
     columns.forEach((column, columnIndex) => {
       column.forEach((id) => {
@@ -104,14 +129,9 @@ if (arrangeRequested && gallery && desktopQuery.matches) {
     unplacedGroup?.remove();
   };
   const getItemId = (item) => item.getElement().dataset.imageId;
-  const getItemsById = (items) => new Map(items.map((item) => [getItemId(item), item]));
+  const getItemsById = (items) =>
+    new Map(items.map((item) => [getItemId(item), item]));
   const getElements = () => [...gallery.querySelectorAll(".gallery-item")];
-  const getWorkingColumns = () => {
-    const workingColumns = columns.map((column) => [...column]);
-    workingColumns[2].push(...unplaced);
-    return workingColumns;
-  };
-
   pinned.forEach((id) => {
     if (pinSlots[id]) return;
     const column = columns.findIndex((items) => items.includes(id));
@@ -122,11 +142,16 @@ if (arrangeRequested && gallery && desktopQuery.matches) {
   const normalizedSourceColumns = columns.map((column) => [...column]);
 
   const normalizePinnedSlots = (nextColumns) => {
-    const normalized = nextColumns.map((column) => column.filter((id) => !pinned.has(id)));
+    const normalized = nextColumns.map((column) =>
+      column.filter((id) => !pinned.has(id)),
+    );
     Object.entries(pinSlots).forEach(([id, slot]) => {
       if (!pinned.has(id) || !itemsById.has(id)) return;
       const targetColumn = Math.max(0, Math.min(2, slot.column));
-      const targetIndex = Math.max(0, Math.min(slot.index, normalized[targetColumn].length));
+      const targetIndex = Math.max(
+        0,
+        Math.min(slot.index, normalized[targetColumn].length),
+      );
       normalized[targetColumn].splice(targetIndex, 0, id);
     });
     return normalized;
@@ -142,24 +167,33 @@ if (arrangeRequested && gallery && desktopQuery.matches) {
       (lastIndex, id, index) => (stagedIds.has(id) ? lastIndex : index),
       -1,
     );
-    const nextUnplaced = gridColumns[2]
-      .filter((id, index) => stagedIds.has(id) && index > lastCommittedIndex);
-    const nextColumns = gridColumns.map((column, columnIndex) => column.filter((id, index) => (
-      columnIndex !== 2 || !stagedIds.has(id) || index <= lastCommittedIndex
-    )));
+    const nextUnplaced = gridColumns[2].filter(
+      (id, index) => stagedIds.has(id) && index > lastCommittedIndex,
+    );
+    const nextColumns = gridColumns.map((column, columnIndex) =>
+      column.filter(
+        (id, index) =>
+          columnIndex !== 2 ||
+          !stagedIds.has(id) ||
+          index <= lastCommittedIndex,
+      ),
+    );
     columns = normalizePinnedSlots(nextColumns);
     unplaced = nextUnplaced;
   };
 
   const persist = () => {
-    localStorage.setItem(storageKey, JSON.stringify({
-      version: storageVersion,
-      columns,
-      unplaced,
-      favorites: [...favorites],
-      pinned: [...pinned],
-      pinSlots,
-    }));
+    localStorage.setItem(
+      storageKey,
+      JSON.stringify({
+        version: storageVersion,
+        columns,
+        unplaced,
+        favorites: [...favorites],
+        pinned: [...pinned],
+        pinSlots,
+      }),
+    );
   };
   const syncAndPersist = () => {
     syncColumnsFromGrids();
@@ -172,7 +206,7 @@ if (arrangeRequested && gallery && desktopQuery.matches) {
     const parsed = Number.parseFloat(value);
     return Number.isFinite(parsed) ? parsed : 0;
   };
-  const stackLayout = (grid, layoutId, items, width, height, callback) => {
+  const stackLayout = (_grid, layoutId, items, width, _height, callback) => {
     const gap = galleryGap();
     const overview = gallery.classList.contains("is-overview");
     let top = 0;
@@ -215,21 +249,47 @@ if (arrangeRequested && gallery && desktopQuery.matches) {
   output.setAttribute("aria-label", "Gallery columns code");
   output.hidden = true;
   output.readOnly = true;
-  toolbar.append(note, resetButton, randomizeButton, masonryButton, overviewButton, copyButton);
+  toolbar.append(
+    note,
+    resetButton,
+    randomizeButton,
+    masonryButton,
+    overviewButton,
+    copyButton,
+  );
   gallery.before(toolbar, output);
 
-  const updateToggleButton = (button, active, activeLabel, inactiveLabel, activeText, inactiveText) => {
+  const updateToggleButton = (
+    button,
+    active,
+    activeLabel,
+    inactiveLabel,
+    activeText,
+    inactiveText,
+  ) => {
     button.classList.toggle("is-active", active);
     button.textContent = active ? activeText : inactiveText;
     button.setAttribute("aria-label", active ? activeLabel : inactiveLabel);
     button.setAttribute("aria-pressed", String(active));
   };
-  const updateFavoriteButton = (button, id) => updateToggleButton(
-    button, favorites.has(id), `Remove ${id} from favorites`, `Add ${id} to favorites`, "★", "☆",
-  );
-  const updatePinButton = (button, id) => updateToggleButton(
-    button, pinned.has(id), `Unpin ${id}`, `Pin ${id} in place`, "●", "○",
-  );
+  const updateFavoriteButton = (button, id) =>
+    updateToggleButton(
+      button,
+      favorites.has(id),
+      `Remove ${id} from favorites`,
+      `Add ${id} to favorites`,
+      "★",
+      "☆",
+    );
+  const updatePinButton = (button, id) =>
+    updateToggleButton(
+      button,
+      pinned.has(id),
+      `Unpin ${id}`,
+      `Pin ${id} in place`,
+      "●",
+      "○",
+    );
 
   getElements().forEach((item) => {
     item.style.position = "absolute";
@@ -239,7 +299,9 @@ if (arrangeRequested && gallery && desktopQuery.matches) {
     favoriteButton.className = "arrange-favorite-button";
     favoriteButton.dataset.imageId = id;
     updateFavoriteButton(favoriteButton, id);
-    favoriteButton.addEventListener("pointerdown", (event) => event.stopPropagation());
+    favoriteButton.addEventListener("pointerdown", (event) =>
+      event.stopPropagation(),
+    );
     favoriteButton.addEventListener("click", () => {
       if (favorites.has(id)) favorites.delete(id);
       else favorites.add(id);
@@ -252,10 +314,14 @@ if (arrangeRequested && gallery && desktopQuery.matches) {
     pinButton.className = "arrange-pin-button";
     pinButton.dataset.imageId = id;
     updatePinButton(pinButton, id);
-    pinButton.addEventListener("pointerdown", (event) => event.stopPropagation());
+    pinButton.addEventListener("pointerdown", (event) =>
+      event.stopPropagation(),
+    );
     pinButton.addEventListener("click", () => {
       const grid = grids.find((candidate) => candidate.getItem(item));
-      const currentIndex = grid ? grid.getItems().indexOf(grid.getItem(item)) : -1;
+      const currentIndex = grid
+        ? grid.getItems().indexOf(grid.getItem(item))
+        : -1;
       const currentColumn = grids.indexOf(grid);
       if (pinned.has(id)) {
         pinned.delete(id);
@@ -274,31 +340,38 @@ if (arrangeRequested && gallery && desktopQuery.matches) {
     item.append(favoriteButton, pinButton);
   });
 
-  grids = columnGroups.map((column) => new Muuri(column, {
-    items: ".gallery-item",
-    dragEnabled: true,
-    dragContainer: document.body,
-    dragSort: () => grids,
-    dragStartPredicate: (item, event) => {
-      if (pinned.has(getItemId(item))) return false;
-      if (event.isFinal) return undefined;
-      return event.distance >= 8 ? true : undefined;
-    },
-    layout: stackLayout,
-    layoutOnResize: 150,
-    layoutDuration: 250,
-    dragRelease: { duration: 250 },
-  }));
+  grids = columnGroups.map(
+    (column) =>
+      new Muuri(column, {
+        items: ".gallery-item",
+        dragEnabled: true,
+        dragContainer: document.body,
+        dragSort: () => grids,
+        dragStartPredicate: (item, event) => {
+          if (pinned.has(getItemId(item))) return false;
+          if (event.isFinal) return undefined;
+          return event.distance >= 8 ? true : undefined;
+        },
+        layout: stackLayout,
+        layoutOnResize: 150,
+        layoutDuration: 250,
+        dragRelease: { duration: 250 },
+      }),
+  );
 
   const applyColumnsToGrids = () => {
     isApplyingState = true;
     grids.forEach((grid, index) => {
       const itemsById = getItemsById(grid.getItems());
-      const ids = index === 2 ? [...columns[index], ...unplaced] : columns[index];
+      const ids =
+        index === 2 ? [...columns[index], ...unplaced] : columns[index];
       const orderedItems = ids.map((id) => itemsById.get(id)).filter(Boolean);
       const currentItems = grid.getItems();
-      const isAlreadyOrdered = orderedItems.length === currentItems.length
-        && orderedItems.every((item, itemIndex) => item === currentItems[itemIndex]);
+      const isAlreadyOrdered =
+        orderedItems.length === currentItems.length &&
+        orderedItems.every(
+          (item, itemIndex) => item === currentItems[itemIndex],
+        );
       if (!isAlreadyOrdered) grid.sort(orderedItems, { layout: "instant" });
     });
     isApplyingState = false;
@@ -349,13 +422,16 @@ if (arrangeRequested && gallery && desktopQuery.matches) {
       const remaining = movable.filter((id) => !favorites.has(id));
       for (let index = remaining.length - 1; index > 0; index -= 1) {
         const swapIndex = Math.floor(Math.random() * (index + 1));
-        [remaining[index], remaining[swapIndex]] = [remaining[swapIndex], remaining[index]];
+        [remaining[index], remaining[swapIndex]] = [
+          remaining[swapIndex],
+          remaining[index],
+        ];
       }
       const randomized = [...favoriteMovable, ...remaining];
       let movableIndex = 0;
-      return column.map((id) => (
-        pinned.has(id) ? id : randomized[movableIndex++]
-      ));
+      return column.map((id) =>
+        pinned.has(id) ? id : randomized[movableIndex++],
+      );
     });
     syncAndPersist();
   };
@@ -374,16 +450,20 @@ if (arrangeRequested && gallery && desktopQuery.matches) {
 
   copyButton.addEventListener("click", async () => {
     syncAndPersist();
-    const text = `const galleryColumns = [\n${columns
-      .map((column) => `  [${column.map((id) => JSON.stringify(id)).join(", ")}]`)
-      .join(",\n")}\n];`;
+    const text = `export const workGalleryColumns = [\n${columns
+      .map(
+        (column) => `  [${column.map((id) => JSON.stringify(id)).join(", ")}]`,
+      )
+      .join(",\n")}\n] as const;`;
     output.value = text;
     output.hidden = false;
     output.select();
     try {
       await navigator.clipboard.writeText(text);
       copyButton.textContent = "Copied";
-      window.setTimeout(() => { copyButton.textContent = "Copy order"; }, 1400);
+      window.setTimeout(() => {
+        copyButton.textContent = "Copy order";
+      }, 1400);
     } catch {
       copyButton.textContent = "Select and copy below";
     }

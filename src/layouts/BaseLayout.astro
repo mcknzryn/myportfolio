@@ -1,30 +1,82 @@
 ---
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
-import '../styles/global.css';
+import Footer from "../components/Footer.astro";
+import Header from "../components/Header.astro";
+import "../styles/global.css";
 
-const { pageTitle, hidePageTitle = false, bodyClass = "" } = Astro.props;
+export type LayoutMode = "viewport" | "document";
+
+interface Props {
+  title: string;
+  mode: LayoutMode;
+  description?: string;
+}
+
+const {
+  title,
+  mode,
+  description = "The photography portfolio of McKenzie Ryan.",
+} = Astro.props;
+const documentTitle =
+  title === "Home" ? "McKenzie Ryan" : `${title} | McKenzie Ryan`;
 ---
 
+<!doctype html>
 <html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="stylesheet" href="https://use.typekit.net/lgy6wgp.css" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>{pageTitle}</title>
-		<script is:inline>
-			document.documentElement.classList.add("js");
-		</script>
-	</head>
-	<body class:list={{ [bodyClass]: Boolean(bodyClass) }}>
-		<Header />
-		{!hidePageTitle && pageTitle && <h1>{pageTitle}</h1>}
-
-    <slot />
-	 <Footer />	
-
-	<script src="../scripts/menu.js"></script>
-	</body>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="description" content={description} />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://use.typekit.net" />
+    <link rel="preconnect" href="https://p.typekit.net" crossorigin />
+    <link rel="stylesheet" href="https://use.typekit.net/lgy6wgp.css" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{documentTitle}</title>
+  </head>
+  <body class={`layout-${mode}`} data-layout-mode={mode}>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <div class="site-shell">
+      <Header />
+      <main id="main-content" class="site-main">
+        <slot />
+      </main>
+      <Footer />
+    </div>
+  </body>
 </html>
+
+<style is:global>
+  .site-shell {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .layout-viewport .site-shell {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    height: 100vh;
+    height: 100svh;
+    overflow: clip;
+  }
+
+  .layout-viewport .site-main {
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .layout-document .site-shell {
+    display: flex;
+    min-height: 100vh;
+    min-height: 100svh;
+    flex-direction: column;
+  }
+
+  .layout-document .site-main {
+    flex: 1;
+    padding-block-start: var(--header-height);
+    padding-inline: var(--page-gutter);
+  }
+</style>

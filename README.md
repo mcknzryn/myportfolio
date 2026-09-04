@@ -1,54 +1,90 @@
-# Astro Starter Kit: Basics
+# McKenzie Ryan Portfolio
+
+An Astro photography portfolio with a deliberately small layout system, one canonical photo library, and automated checks for the behaviors that have historically been fragile.
+
+## Layout system
+
+Every page uses `src/layouts/BaseLayout.astro` and must provide a `title` and one of two modes:
+
+- `viewport` is a bounded, one-screen composition. Home uses a three-row `100svh` grid: header, flexible slideshow, and footer. Its shared chrome is in normal flow; the gallery sizes itself to the middle row.
+- `document` grows with its content. Work, About, and Contact use normal document scrolling, a shared fixed header overlay, one shared header-clearance token, and a footer after the page content.
+
+The ownership boundary is intentional:
+
+- `src/styles/global.css` owns design tokens, normalization, base accessibility, and fallback behavior.
+- `BaseLayout.astro` owns the page shell and placement of the header, main region, and footer.
+- `Header.astro` and `Footer.astro` own their appearance and interaction.
+- Page files own only the composition and spacing inside their main region.
+
+Do not add body overflow fixes, fixed footers, page-specific header offsets, or viewport-height subtraction to an individual page. If shared chrome changes size, update the shared token and layout instead.
+
+## Photography
+
+`src/assets/photos/` is the only active portfolio photo library. Astro imports, optimizes, hashes, and dimensions these source images at build time. `src/assets/profile/` contains the optimized About portrait. `public/` is reserved for files that need an unchanged URL, currently the favicon.
+
+`src/data/photos.ts` is the source of truth for:
+
+- stable photo IDs and meaningful alt descriptions;
+- Home slideshow order;
+- Work's three columns;
+- Arrange-mode favorites and pins.
+
+Both galleries read the same photo records. The build validates duplicate IDs, missing files or metadata, blank alt descriptions, incorrect Work columns, invalid references, and active photos that are not used.
+
+To add a photo:
+
+1. Put its original in `src/assets/photos/` using a unique, stable ID as its filename.
+2. Add that ID and a meaningful visual description to `photoMetadata`.
+3. Add the ID to `homePhotoIds`, `workGalleryColumns`, or both.
+4. Run `npm run check`, `npm run test:unit`, and `npm run build`.
+
+Use `{ alt: "", decorative: true }` only when the image genuinely adds no information. Numeric filenames are never used as alt text.
+
+## Arrange mode
+
+Run the development server and open `/work/?arrange=1` in a desktop browser. Arrange mode can drag, randomize, favorite, pin, and preview the canonical IDs. “Copy order” exports `workGalleryColumns` configuration that can be pasted into `src/data/photos.ts`. It is development-only and is not shipped in the production page.
+
+## Commands
 
 ```sh
-npm create astro@latest -- --template basics
+npm install
+npm run dev
+npm run format
+npm run format:check
+npm run check
+npm run test:unit
+npm run build
+npm run test:e2e
+npm run verify
 ```
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/withastro/astro/tree/latest/examples/basics)
-[![Open with CodeSandbox](https://assets.codesandbox.io/github/button-edit-lime.svg)](https://codesandbox.io/p/sandbox/github/withastro/astro/tree/latest/examples/basics)
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/withastro/astro?devcontainer_path=.devcontainer/basics/devcontainer.json)
+`npm run verify` runs formatting, Astro/TypeScript checks, a production build, gallery-data unit tests, and browser tests. Playwright covers Chromium, Firefox, and WebKit across desktop, tablet, portrait-phone, and short-landscape viewports. Install its local browser binaries once with `npx playwright install` if they are missing.
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+Chromium visual baselines live beside the browser tests. Review intentional visual changes before updating them with:
 
-![just-the-basics](https://github.com/withastro/astro/assets/2244813/a0a5533c-a856-4198-8470-2d67b1d7c554)
-
-## 🚀 Project Structure
-
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-│   └── favicon.svg
-├── src/
-│   ├── components/
-│   │   └── Card.astro
-│   ├── layouts/
-│   │   └── Layout.astro
-│   └── pages/
-│       └── index.astro
-└── package.json
+```sh
+npx playwright test --project=chromium-desktop --update-snapshots
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+Automated emulation catches regressions but does not replace the final iPhone Safari check. Before merging layout changes, load the pushed preview on a real iPhone, start from a fresh tab, and verify the initial Home render, rotation, menu, slideshow controls, and page footers.
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+## Typography
 
-Any static assets, like images, can be placed in the `public/` directory.
+The site loads Adobe Typekit kit `lgy6wgp` with connection hints. Explicit line heights and the hardened `Avenir Next`, Avenir, Helvetica Neue, Arial, sans-serif fallback stack keep the geometry usable if Typekit is delayed or unavailable.
 
-## 🧞 Commands
+## Content collections
 
-All commands are run from the root of the project, from a terminal:
+There is intentionally no Astro content collection yet. About and Contact are direct pages, while gallery ordering is typed presentation data. Add a build-time `projects` collection only when real projects exist and shared fields such as title, cover, description, gallery, credits, date, status, and route are known. Project entries can then use Astro's collection `image()` schema helper to reference the canonical local photo library.
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+## GitHub workflow
 
-## 👀 Want to learn more?
+`.github/workflows/quality.yml` runs the quality suite on pull requests and pushes to `main`. GitHub Actions only examines commits that you deliberately push. It does not create commits, push, merge, deploy, or decide when the branch reaches GitHub.
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+The expected flow is:
+
+1. Edit and test locally.
+2. Create logical local commits when you choose.
+3. Optionally push the branch and review its checks.
+4. Manually merge when the result is ready.
+
+The site's existing deployment mechanism is unchanged.

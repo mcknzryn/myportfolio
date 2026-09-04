@@ -1,20 +1,27 @@
 <footer class="site-footer">
   <ul class="footer-items">
     <li class="job-title">digital &amp; film photographer based in nyc</li>
-    <li><a href="https://www.instagram.com/thisspotstaken/" target="_blank" rel="noopener noreferrer">@thisspotstaken</a></li>
-    <li><a href="mailto:knockknock@mckenzieryan.co">hello@mckenzieryan.co</a></li>
+    <li>
+      <a
+        href="https://www.instagram.com/thisspotstaken/"
+        target="_blank"
+        rel="noopener noreferrer">@thisspotstaken</a
+      >
+    </li>
+    <li>
+      <a href="mailto:knockknock@mckenzieryan.co">hello@mckenzieryan.co</a>
+    </li>
   </ul>
 </footer>
 
 <style>
   .site-footer {
-    position: fixed;
-    z-index: 9;
-    inset: auto 0 0;
-    padding: 20px var(--chrome-gutter);
+    z-index: 10;
+    width: 100%;
+    padding: 20px var(--chrome-inline-padding);
     background: transparent;
-    font-family: var(--font-family);
-    font-weight: var(--font-weight-book);
+    font-family: var(--font-sans);
+    font-weight: var(--font-weight-regular);
     font-size: 0.75rem;
     line-height: 1.25rem;
     text-transform: uppercase;
@@ -30,25 +37,40 @@
   }
 
   .footer-items li:nth-child(2),
-  .footer-items li:nth-child(3) { text-align: right; }
+  .footer-items li:nth-child(3) {
+    text-align: right;
+  }
 
-  .site-footer a { text-decoration: none; }
-  .site-footer a:hover { color: chartreuse; text-decoration: underline; text-underline-offset: 2px; }
+  .site-footer a {
+    text-decoration: none;
+  }
+  .site-footer a:hover {
+    color: chartreuse;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
 
   @media (max-width: 800px) {
     .site-footer {
-      position: fixed;
-      inset: auto 0 0;
-      padding: 0.5rem var(--chrome-gutter) max(0.75rem, env(safe-area-inset-bottom));
+      padding: 0.5rem var(--chrome-inline-padding)
+        max(0.75rem, env(safe-area-inset-bottom, 0px));
       border-top: 1px solid currentColor;
       font-size: 0.7rem;
     }
 
-    .footer-items { display: block; }
-    .footer-items li { padding: 0.1rem 0; }
+    .footer-items {
+      display: block;
+    }
+    .footer-items li {
+      padding: 0.1rem 0;
+    }
     .footer-items li:nth-child(2),
-    .footer-items li:nth-child(3) { text-align: left; }
-    .job-title { display: none; }
+    .footer-items li:nth-child(3) {
+      text-align: left;
+    }
+    .job-title {
+      display: none;
+    }
   }
 
   @media (max-width: 1024px) {

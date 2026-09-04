@@ -3,12 +3,16 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 const pageTitle = "get in touch...";
 ---
 
-<BaseLayout>
+<BaseLayout title="Contact" mode="document">
   <div class="container">
     <h1 id="pagetitle">{pageTitle}</h1>
     <div class="contact-content">
-      <div class="contact-line">For all inquiries and requests: <a href="mailto:knockknock@mckenzieryan.co">hello@mckenzieryan.co</a></div>
-      <div class="contact-line">More on Instagram: <a href="https://www.instagram.com/thisspotstaken/" target="_blank" rel="noopener noreferrer">@thisspotstaken</a></div>
+      <div class="contact-line">
+        For all inquiries and requests: <a href="mailto:knockknock@mckenzieryan.co">hello@mckenzieryan.co</a>
+      </div>
+      <div class="contact-line">
+        More on Instagram: <a href="https://www.instagram.com/thisspotstaken/" target="_blank" rel="noopener noreferrer">@thisspotstaken</a >
+      </div>
     </div>
   </div>
 </BaseLayout>
@@ -21,7 +25,7 @@ const pageTitle = "get in touch...";
     width: 100%;
     max-width: 1600px;
     margin: 0 auto;
-    padding: 0 0 3.75rem;
+    padding: 1.5rem 0 1.5rem;
     font-family: inherit;
     font-size: clamp(0.875rem, 1.2vw, 1rem);
   }
@@ -69,7 +73,7 @@ const pageTitle = "get in touch...";
 
   .contact-line a {
     font-size: inherit;
-    font-weight: var(--font-weight-black);
+    font-weight: 800;
     line-height: inherit;
   }
 
@@ -81,10 +85,6 @@ const pageTitle = "get in touch...";
     }
   }
 
-  @media (min-width: 801px) and (max-width: 1199px) {
-    .container { padding-top: 3.5rem; }
-  }
-
   @media (min-width: 801px) {
     .container,
     #pagetitle,
@@ -94,7 +94,9 @@ const pageTitle = "get in touch...";
   }
 
   @media (min-width: 1200px) {
-    .container { padding-top: clamp(1rem, 8vw, 10rem); }
+    .container {
+      padding-top: clamp(1rem, 8vw, 10rem);
+    }
 
     .contact-content h3 {
       font-size: 0.875rem;
