@@ -16,6 +16,8 @@ The ownership boundary is intentional:
 - `Header.astro` and `Footer.astro` own their appearance and interaction.
 - Page files own only the composition and spacing inside their main region.
 
+`BaseLayout.astro` keeps `id="main-content"` on its `<main>` element as a stable fragment target, although no current feature uses it. It can support direct `#main-content` links, scripted focus or scrolling, and browser-test selectors. The `<main>` element itself provides the semantic page landmark; the ID adds no accessibility behavior on its own. Any future scrolling or focus behavior that targets it must account for the fixed header in `document` layouts.
+
 Do not add body overflow fixes, fixed footers, page-specific header offsets, or viewport-height subtraction to an individual page. If shared chrome changes size, update the shared token and layout instead.
 
 ## Photography
