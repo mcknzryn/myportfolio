@@ -4,16 +4,20 @@ import Header from "../components/Header.astro";
 import "../styles/global.css";
 
 export type LayoutMode = "viewport" | "document";
+export type ContentLayout =
+  "default" | "centered-all" | "centered-mobile" | "centered-desktop";
 
 interface Props {
   title: string;
   mode: LayoutMode;
+  contentLayout?: ContentLayout;
   description?: string;
 }
 
 const {
   title,
   mode,
+  contentLayout = "default",
   description = "The photography portfolio of McKenzie Ryan.",
 } = Astro.props;
 const documentTitle =
@@ -40,7 +44,10 @@ const documentTitle =
     <a class="skip-link" href="#main-content">Skip to content</a>
     <div class="site-shell">
       <Header />
-      <main id="main-content" class="site-main">
+      <main
+        id="main-content"
+        class:list={["site-main", `content-layout-${contentLayout}`]}
+      >
         <slot />
       </main>
       <Footer />
@@ -78,5 +85,36 @@ const documentTitle =
     flex: 1;
     padding-block-start: var(--header-height);
     padding-inline: var(--page-gutter);
+  }
+
+  .content-layout-centered-all {
+    display: grid;
+    align-items: center;
+    align-items: safe center;
+    justify-items: center;
+    justify-items: safe center;
+    text-align: center;
+  }
+
+  @media (max-width: 800px) {
+    .content-layout-centered-mobile {
+      display: grid;
+      align-items: center;
+      align-items: safe center;
+      justify-items: center;
+      justify-items: safe center;
+      text-align: center;
+    }
+  }
+
+  @media (min-width: 801px) {
+    .content-layout-centered-desktop {
+      display: grid;
+      align-items: center;
+      align-items: safe center;
+      justify-items: center;
+      justify-items: safe center;
+      text-align: center;
+    }
   }
 </style>

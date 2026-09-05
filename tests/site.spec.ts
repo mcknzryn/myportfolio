@@ -103,6 +103,81 @@ for (const route of documentRoutes) {
   });
 }
 
+test("Contact centers within the desktop main region", async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    !testInfo.project.name.endsWith("-desktop"),
+    "Desktop-specific layout",
+  );
+  await page.goto("/contact/");
+
+  const geometry = await page.evaluate(() => {
+    const header = document
+      .querySelector(".site-header")!
+      .getBoundingClientRect();
+    const contentElement = document.querySelector(".container")!;
+    const content = contentElement.getBoundingClientRect();
+    const footer = document
+      .querySelector(".site-footer")!
+      .getBoundingClientRect();
+    const main = document.querySelector(".site-main")!;
+
+    return {
+      availableCenter: (header.bottom + footer.top) / 2,
+      contentCenter: (content.top + content.bottom) / 2,
+      documentHeight: document.documentElement.scrollHeight,
+      footerBottom: footer.bottom,
+      mainClass: main.className,
+      textAlign: getComputedStyle(contentElement).textAlign,
+      viewportHeight: window.innerHeight,
+    };
+  });
+
+  expect(geometry.mainClass).toContain("content-layout-centered-desktop");
+  expect(geometry.contentCenter).toBeCloseTo(geometry.availableCenter, 0);
+  expect(geometry.textAlign).toBe("center");
+  expect(geometry.documentHeight).toBeLessThanOrEqual(
+    geometry.viewportHeight + 1,
+  );
+  expect(geometry.footerBottom).toBeLessThanOrEqual(
+    geometry.viewportHeight + 1,
+  );
+});
+
+test("Contact uses default document flow on mobile", async ({
+  page,
+}, testInfo) => {
+  test.skip(!testInfo.project.name.includes("phone"), "Phone-specific layout");
+  await page.goto("/contact/");
+
+  const textAlign = await page
+    .locator(".container")
+    .evaluate((element) => getComputedStyle(element).textAlign);
+
+  expect(textAlign).not.toBe("center");
+});
+
+test("Contact permits emergency document scrolling", async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    testInfo.project.name !== "chromium-short-landscape",
+    "Representative short viewport",
+  );
+  await page.goto("/contact/");
+  await page.addStyleTag({ content: ".container { min-height: 50rem; }" });
+
+  const heights = await page.evaluate(() => ({
+    document: document.documentElement.scrollHeight,
+    viewport: window.innerHeight,
+  }));
+
+  expect(heights.document).toBeGreaterThan(heights.viewport);
+  await page.locator(".site-footer").scrollIntoViewIfNeeded();
+  await expect(page.locator(".site-footer")).toBeInViewport();
+});
+
 test("mobile navigation opens accessibly and closes with Escape", async ({
   page,
 }, testInfo) => {
