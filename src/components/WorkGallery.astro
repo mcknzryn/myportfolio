@@ -1,4 +1,8 @@
 ---
+// This frontmatter runs during Astro's build/render step. It converts the
+// canonical data from photos.ts into gallery HTML and, in development only,
+// passes arrangement configuration to the browser through data-* attributes.
+
 import { Image } from "astro:assets";
 import {
   galleryFavorites,
@@ -7,9 +11,16 @@ import {
   workPhotoColumns,
 } from "../data/photos";
 
+// `galleryColumns` is a local presentation name for three columns of complete
+// PhotoRecord objects. `workGalleryColumns` above contains only their IDs.
 const galleryColumns = workPhotoColumns;
 ---
 
+<!--
+  The data-gallery-* attributes are a bridge between two execution times.
+  Astro serializes typed arrays to JSON text now; gallery-arrange.js can parse
+  that text later in the browser. Production does not receive editor data.
+-->
 <section
   class="gallery"
   aria-label="Selected photography gallery"
@@ -48,6 +59,7 @@ const galleryColumns = workPhotoColumns;
   }
 </section>
 
+<!-- Reveal is a public progressive enhancement; arrange is a DEV-only tool. -->
 <script src="../scripts/gallery-reveal.js"></script>
 {import.meta.env.DEV && <script src="../scripts/gallery-arrange.js" />}
 

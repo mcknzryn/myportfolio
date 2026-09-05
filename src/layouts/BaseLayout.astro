@@ -1,12 +1,20 @@
 ---
+// This component is the typed shell shared by every page. Its frontmatter runs
+// while Astro renders HTML, not in the visitor's browser. Pages supply layout
+// choices through Props; the component turns them into shared classes and markup.
+
 import Footer from "../components/Footer.astro";
 import Header from "../components/Header.astro";
 import "../styles/global.css";
 
+// These project-authored union types list every permitted string. A page cannot
+// accidentally request an unknown layout mode without a TypeScript error.
 export type LayoutMode = "viewport" | "document";
 export type ContentLayout =
   "default" | "centered-all" | "centered-mobile" | "centered-desktop";
 
+// `Props` is Astro's conventional name for the input contract of a component.
+// The `?` marks properties that callers may omit.
 interface Props {
   title: string;
   mode: LayoutMode;
@@ -14,14 +22,14 @@ interface Props {
   description?: string;
 }
 
+// Destructuring extracts named values from Astro.props. The `=` expressions are
+// defaults used only when the corresponding optional property was not supplied.
 const {
   title,
   mode,
   contentLayout = "default",
   description = "The photography portfolio of McKenzie Ryan.",
 } = Astro.props;
-const documentTitle =
-  title === "Home" ? "McKenzie Ryan" : `${title} | McKenzie Ryan`;
 ---
 
 <!doctype html>
@@ -38,7 +46,9 @@ const documentTitle =
     <link rel="preconnect" href="https://p.typekit.net" crossorigin />
     <link rel="stylesheet" href="https://use.typekit.net/lgy6wgp.css" />
     <meta name="generator" content={Astro.generator} />
-    <title>{documentTitle}</title>
+    <title>
+      {title === "Home" ? "McKenzie Ryan" : `${title} | McKenzie Ryan`}
+    </title>
   </head>
   <body class={`layout-${mode}`} data-layout-mode={mode}>
     <div class="site-shell">

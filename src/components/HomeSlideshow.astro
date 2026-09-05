@@ -1,4 +1,8 @@
 ---
+// This frontmatter runs while Astro renders the Home page. `homePhotos` already
+// contains complete PhotoRecord objects; `slides` is the local presentation name
+// used while turning those records into slideshow HTML.
+
 import { Image } from "astro:assets";
 import { homePhotos } from "../data/photos";
 
@@ -162,9 +166,16 @@ const slides = homePhotos;
 </style>
 
 <script>
+  // This browser script enhances the HTML rendered above. `stage` is our name
+  // for the area that presents one active slide and owns all slideshow input.
+  // The generic tells TypeScript which element API we expect to use.
   const stage = document.querySelector<HTMLElement>("[data-slideshow]");
 
+  // The guard prevents all later DOM work if the component is not on the page.
   if (stage) {
+    // `slides` is now a collection of DOM elements, unlike the build-time photo
+    // records with the same local name above. The two blocks run at different
+    // times and do not share a JavaScript scope.
     const slides = Array.from(stage.querySelectorAll<HTMLElement>(".slide"));
     const previousButton = stage.querySelector<HTMLButtonElement>(".previous");
     const nextButton = stage.querySelector<HTMLButtonElement>(".next");
@@ -172,8 +183,14 @@ const slides = homePhotos;
     const reducedMotionQuery = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     );
+
+    // These project-authored constants describe the click-area geometry around
+    // the active desktop image. Their numeric values are CSS pixel measurements.
     const desktopControlMargin = 32;
     const desktopCenterGap = 160;
+
+    // `current...` means active now. The timer variables hold browser timer IDs
+    // or `undefined` when no corresponding work is scheduled.
     let currentIndex = Math.max(
       0,
       slides.findIndex((slide) => slide.classList.contains("active")),
@@ -182,6 +199,11 @@ const slides = homePhotos;
     let resumeTimeout: number | undefined;
     let touchStartX = 0;
 
+    // --- Positioning desktop previous/next controls -----------------------
+
+    // `updateDesktopControls` measures the stage and active image, then exposes
+    // the calculated click areas as CSS custom properties. Mobile CSS uses its
+    // own fixed control regions, so desktop-only properties are removed there.
     const updateDesktopControls = () => {
       if (!desktopQuery.matches) {
         stage.style.removeProperty("--gallery-control-width");
@@ -217,9 +239,15 @@ const slides = homePhotos;
       stage.style.setProperty("--gallery-control-right", `${imageRight}px`);
     };
 
+    // requestAnimationFrame asks the browser to measure during its next visual
+    // update. `schedule...` names mean “request this work soon,” not “run now.”
     const scheduleDesktopControlUpdate = () =>
       window.requestAnimationFrame(updateDesktopControls);
 
+    // --- Choosing which slide is active -----------------------------------
+
+    // `showSlide` accepts any next index. Modulo wraps values at both ends so
+    // Previous on the first slide reaches the last and Next can loop to zero.
     const showSlide = (nextIndex: number) => {
       if (slides.length === 0) return;
       currentIndex = (nextIndex + slides.length) % slides.length;
@@ -231,12 +259,19 @@ const slides = homePhotos;
       scheduleDesktopControlUpdate();
     };
 
+    // --- Autoplay rules and timer ownership -------------------------------
+
+    // A `can...` function is a Boolean question. Autoplay requires multiple
+    // slides, a visible tab, no reduced-motion request, and no keyboard focus
+    // inside the stage.
     const canAutoplay = () =>
       slides.length > 1 &&
       !document.hidden &&
       !reducedMotionQuery.matches &&
       !stage.matches(":focus-within");
 
+    // `autoplay === undefined` guarantees that only one repeating interval can
+    // exist. stopAutoplay both clears it and restores that “none running” state.
     const startAutoplay = () => {
       if (canAutoplay() && autoplay === undefined) {
         autoplay = window.setInterval(() => showSlide(currentIndex + 1), 2500);
@@ -250,6 +285,8 @@ const slides = homePhotos;
       }
     };
 
+    // Manual pointer choices briefly stop autoplay so the chosen image is not
+    // immediately replaced. A new click cancels any older pending resume.
     const resumeAutoplayAfterClick = () => {
       stopAutoplay();
       if (resumeTimeout !== undefined) window.clearTimeout(resumeTimeout);
@@ -259,6 +296,9 @@ const slides = homePhotos;
       }, 1000);
     };
 
+    // --- User input --------------------------------------------------------
+
+    // Optional chaining allows either button to be absent without throwing.
     previousButton?.addEventListener("click", () => {
       showSlide(currentIndex - 1);
       resumeAutoplayAfterClick();
@@ -269,6 +309,8 @@ const slides = homePhotos;
       resumeAutoplayAfterClick();
     });
 
+    // Arrow-key navigation belongs to the stage. preventDefault stops the page
+    // from interpreting these handled keys as a different browser action.
     stage.addEventListener("keydown", (event) => {
       if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
         event.preventDefault();
@@ -279,6 +321,8 @@ const slides = homePhotos;
     stage.addEventListener("focusin", stopAutoplay);
     stage.addEventListener("focusout", () => window.setTimeout(startAutoplay));
 
+    // A swipe is represented by the distance between touchstart and touchend.
+    // `passive: true` promises these handlers will not cancel browser scrolling.
     stage.addEventListener(
       "touchstart",
       (event) => {
@@ -300,6 +344,10 @@ const slides = homePhotos;
       { passive: true },
     );
 
+    // --- Responding to browser and device changes -------------------------
+
+    // These listeners keep autoplay and click-area geometry in agreement with
+    // tab visibility, accessibility preferences, viewport size, and image load.
     document.addEventListener("visibilitychange", () => {
       if (document.hidden) stopAutoplay();
       else startAutoplay();
@@ -316,6 +364,8 @@ const slides = homePhotos;
         ?.addEventListener("load", scheduleDesktopControlUpdate);
     });
 
+    // Mark ready only after behavior is attached. CSS uses data-ready to reveal
+    // controls; tabIndex makes the stage reachable for its arrow-key handling.
     stage.tabIndex = 0;
     stage.dataset.ready = "true";
     scheduleDesktopControlUpdate();

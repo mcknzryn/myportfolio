@@ -2,12 +2,14 @@
 import { Image } from "astro:assets";
 import headshot from "../assets/profile/headshot.jpeg";
 import BaseLayout from "../layouts/BaseLayout.astro";
-const pageTitle = "bio & cv";
+
+const title = "About";
+const heading = "bio & cv";
 ---
 
-<BaseLayout title="Bio & CV" mode="document">
+<BaseLayout title={title} mode="document">
   <div class="container">
-    <h1 id="pagetitle">{pageTitle}</h1>
+    <h1 class="page-heading">{heading}</h1>
     <div id="bio">
       <p>
         <b class="bio-name"><i>McKenzie Ryan</i></b> is a lifestyle photographer based
@@ -27,7 +29,6 @@ const pageTitle = "bio & cv";
     </div>
 
     <div id="cv">
-      <h1>bio & cv</h1>
       <ul class="education">
         <li><h3>Education</h3></li>
         <li>University of California San Diego, 2022-2024</li>
@@ -74,7 +75,7 @@ const pageTitle = "bio & cv";
     font-weight: 700;
   }
 
-  #pagetitle {
+  .page-heading {
     margin: 0;
     padding: 0 0 1.75rem;
     width: 100%;
@@ -107,10 +108,6 @@ const pageTitle = "bio & cv";
     text-align: left;
   }
 
-  #cv h1 {
-    display: none;
-  }
-
   #cv ul {
     margin: 0 0 1.75rem;
     padding: 0;
@@ -130,31 +127,31 @@ const pageTitle = "bio & cv";
   @media (min-width: 801px) {
     .container {
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      grid-template-areas:
+        "bio heading"
+        "bio cv";
       column-gap: clamp(2rem, 8vw, 8rem);
+      row-gap: 0;
       padding-right: 0;
     }
 
     #cv {
-      grid-column: 2;
+      grid-area: cv;
     }
 
     #bio {
-      grid-column: 1;
-      grid-row: 1;
+      grid-area: bio;
     }
 
     #cv {
-      padding-top: clamp(1rem, 8vw, 10rem);
+      padding-top: clamp(2rem, 4vw, 4rem);
       text-align: right;
     }
 
-    #pagetitle {
-      display: none;
-    }
-
-    #cv h1 {
-      display: block;
-      margin: 0 0 clamp(2rem, 4vw, 4rem);
+    .page-heading {
+      grid-area: heading;
+      margin: 0;
+      padding: clamp(1rem, 8vw, 10rem) 0 0;
       font-size: clamp(1.75rem, 5vw, 2.5rem);
       line-height: 0.9;
       text-align: right;
@@ -182,8 +179,7 @@ const pageTitle = "bio & cv";
       font-size: 0.75rem;
     }
 
-    #cv h1 {
-      margin: 0 0 4rem;
+    .page-heading {
       font-size: 2.5rem;
     }
 

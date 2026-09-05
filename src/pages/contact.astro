@@ -1,17 +1,25 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-const pageTitle = "get in touch...";
+
+const title = "Contact";
+const heading = "get in touch...";
 ---
 
-<BaseLayout title="Contact" mode="document" contentLayout="centered-all">
+<BaseLayout title={title} mode="document" contentLayout="centered-all">
   <div class="container">
-    <h1 id="pagetitle">{pageTitle}</h1>
+    <h1 class="page-heading">{heading}</h1>
     <div class="contact-content">
       <div class="contact-line">
-        For all inquiries and requests: <a href="mailto:knockknock@mckenzieryan.co">hello@mckenzieryan.co</a>
+        For all inquiries and requests: <a
+          href="mailto:knockknock@mckenzieryan.co">knockknock@mckenzieryan.co</a
+        >
       </div>
       <div class="contact-line">
-        More on Instagram: <a href="https://www.instagram.com/thisspotstaken/" target="_blank" rel="noopener noreferrer">@thisspotstaken</a>
+        More on Instagram: <a
+          href="https://www.instagram.com/thisspotstaken/"
+          target="_blank"
+          rel="noopener noreferrer">@thisspotstaken</a
+        >
       </div>
     </div>
   </div>
@@ -30,14 +38,14 @@ const pageTitle = "get in touch...";
     font-size: clamp(0.875rem, 1.2vw, 1rem);
   }
 
-  #pagetitle,
+  .page-heading,
   .contact-content h1,
   .contact-content h2,
   .contact-content h3 {
     line-height: 0.9;
   }
 
-  #pagetitle {
+  .page-heading {
     margin: 0;
     padding: 0 0 1rem;
     width: 100%;
@@ -79,8 +87,8 @@ const pageTitle = "get in touch...";
     transition: color 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   }
 
-  @media (hover: hover)  {
-      .contact-line a:hover {
+  @media (hover: hover) {
+    .contact-line a:hover {
       font-size: inherit;
       font-weight: 800;
       line-height: inherit;
@@ -91,7 +99,7 @@ const pageTitle = "get in touch...";
   }
 
   .contact-line a:active {
-      color: #afafaf;
+    color: #afafaf;
   }
 
   @media (max-width: 800px) {
@@ -101,5 +109,4 @@ const pageTitle = "get in touch...";
       padding-bottom: 2rem;
     }
   }
-
 </style>

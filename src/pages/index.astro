@@ -1,8 +1,10 @@
 ---
 import HomeSlideshow from "../components/HomeSlideshow.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
+
+const title = "Home";
 ---
 
-<BaseLayout title="Home" mode="viewport">
+<BaseLayout title={title} mode="viewport">
   <HomeSlideshow />
 </BaseLayout>

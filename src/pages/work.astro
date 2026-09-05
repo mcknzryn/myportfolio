@@ -1,9 +1,11 @@
 ---
 import WorkGallery from "../components/WorkGallery.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
+
+const title = "Work";
 ---
 
-<BaseLayout title="Work" mode="document">
+<BaseLayout title={title} mode="document">
   <div class="work-page">
     <WorkGallery />
   </div>

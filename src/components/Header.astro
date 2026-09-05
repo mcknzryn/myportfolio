@@ -1,4 +1,8 @@
 ---
+// This frontmatter runs while Astro renders the page. `currentPath` is the
+// current URL path, and `links` is the one project-authored navigation list used
+// to produce both desktop and mobile markup.
+
 const currentPath = Astro.url.pathname;
 const links = [
   { href: "/work/", label: "WORK" },
@@ -44,10 +48,19 @@ const links = [
 </header>
 
 <script>
+  // This script runs later in the browser. The generic `<HTMLDetailsElement>`
+  // tells TypeScript which kind of element we expect; querySelector can still
+  // return null, so optional chaining (`?.`) safely handles a missing menu.
   const menu = document.querySelector<HTMLDetailsElement>(".mobile-menu");
+
+  // Close the disclosure after navigation so browser history restoration does
+  // not leave a stale open menu behind.
   menu?.querySelectorAll("a").forEach((link) => {
     link.addEventListener("click", () => menu.removeAttribute("open"));
   });
+
+  // Escape follows familiar dialog/menu behavior. Returning focus to summary
+  // gives a keyboard user a predictable position after closing the disclosure.
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && menu?.open) {
       menu.open = false;
@@ -117,7 +130,7 @@ const links = [
   }
 
   .desktop-navigation a[aria-current="page"] {
-    color: #afafaf;;
+    color: #afafaf;
     text-decoration: underline;
     text-decoration-thickness: 1px;
     text-underline-offset: 4px;

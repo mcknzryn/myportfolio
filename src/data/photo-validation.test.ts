@@ -1,9 +1,15 @@
+// These are unit tests: they exercise the validation function directly without
+// rendering Astro or opening a browser. Vitest supplies `describe`, `it`, and
+// `expect`; the configuration and test-case names are project-authored.
+
 import { describe, expect, it } from "vitest";
 import {
   type PhotoConfiguration,
   validatePhotoConfiguration,
 } from "./photo-validation";
 
+// A function creates a fresh valid object for every test. Individual tests can
+// then replace one property without leaking that mutation into another test.
 const validConfiguration = (): PhotoConfiguration => ({
   assetIds: ["one", "two", "three"],
   metadata: {
@@ -17,6 +23,8 @@ const validConfiguration = (): PhotoConfiguration => ({
   pinnedIds: ["three"],
 });
 
+// `describe` groups related behavior. Each `it` callback changes or checks one
+// rule, and `expect` states the outcome that makes the case pass.
 describe("validatePhotoConfiguration", () => {
   it("accepts a complete three-column configuration", () => {
     expect(() =>

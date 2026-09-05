@@ -2,6 +2,10 @@
 
 An Astro photography portfolio with a deliberately small layout system, one canonical photo library, and automated checks for the behaviors that have historically been fragile.
 
+## Learning the codebase
+
+[`CODE_GUIDE.md`](CODE_GUIDE.md) is a plain-language tour of the project's JavaScript and TypeScript. It explains where each kind of code runs, how photographs move through the system, what the project-specific names mean, and how to read the browser scripts and tests. The source files also contain nearby teaching comments for the details that are easiest to understand beside the code.
+
 ## Layout system
 
 Every page uses `src/layouts/BaseLayout.astro` and must provide a `title` and one of two modes:

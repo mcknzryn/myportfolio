@@ -1,11 +1,62 @@
+// These Playwright browser tests exercise the running site as a visitor would.
+// Playwright supplies `test`, `expect`, and callback fixtures such as `page` and
+// `browser`; route names, geometry objects, and scenario names are project-made.
+// CODE_GUIDE.md explains how these differ from the smaller Vitest unit tests.
+
 import { expect, test } from "@playwright/test";
 
+// `documentRoutes` is our shared name for pages that use the scrolling document
+// layout. `as const` preserves the exact route strings as a readonly tuple.
 const documentRoutes = ["/work/", "/about/", "/contact/"] as const;
+const routeTitles = [
+  ["/", "McKenzie Ryan"],
+  ["/work/", "Work | McKenzie Ryan"],
+  ["/about/", "About | McKenzie Ryan"],
+  ["/contact/", "Contact | McKenzie Ryan"],
+] as const;
 
+// beforeEach establishes the same reduced-motion condition before every case,
+// removing animation timing as a source of unrelated test failures.
 test.beforeEach(async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
 });
 
+test("routes expose their canonical browser titles", async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    testInfo.project.name !== "chromium-desktop",
+    "Browser titles are viewport-independent",
+  );
+
+  for (const [route, title] of routeTitles) {
+    await page.goto(route);
+    await expect(page).toHaveTitle(title);
+  }
+});
+
+test("About and Contact expose their editorial headings", async ({ page }) => {
+  await page.goto("/about/");
+  const aboutHeading = page.getByRole("heading", {
+    level: 1,
+    name: "bio & cv",
+    exact: true,
+  });
+  await expect(aboutHeading).toHaveCount(1);
+  await expect(aboutHeading).toBeVisible();
+
+  await page.goto("/contact/");
+  const contactHeading = page.getByRole("heading", {
+    level: 1,
+    name: "get in touch...",
+    exact: true,
+  });
+  await expect(contactHeading).toHaveCount(1);
+  await expect(contactHeading).toBeVisible();
+});
+
+// `page` is Playwright's prepared browser-tab fixture. evaluate() temporarily
+// crosses into that page's browser context to read layout values from the DOM.
 test("Home is contained by its viewport shell", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator(".slide.active img")).toBeVisible();
@@ -73,6 +124,8 @@ test("slideshow controls and keyboard navigation change the active photo", async
   );
 });
 
+// The loop generates the same header/footer contract test for every document
+// route while still giving each result a descriptive test name.
 for (const route of documentRoutes) {
   test(`${route} clears the fixed header and reaches its footer`, async ({
     page,
@@ -240,6 +293,9 @@ test("content and mobile navigation work without JavaScript", async ({
     testInfo.project.name !== "webkit-phone",
     "No-JavaScript mobile check",
   );
+
+  // Unlike the usual `page` fixture, this case creates its own browser context
+  // with JavaScript disabled to verify the site's progressive fallbacks.
   const context = await browser.newContext({
     javaScriptEnabled: false,
     baseURL,
