@@ -56,27 +56,54 @@ Run the development server and open `/work/?arrange=1` in a desktop browser. Arr
 
 ```sh
 npm install
+npm run hooks:install
 npm run dev
 npm run format
 npm run format:check
 npm run check
 npm run test:unit
+npm run test:home
+npm run test:about
 npm run test:contact
-npm run test:gallery
-npm run test:browser:quick
+npm run test:work
+npm test
+npm run test:all
+npm run test:visual
 npm run build
-npm run test:e2e
-npm run verify:quick
-npm run verify
 ```
 
-Use `npm run test:contact` or `npm run test:gallery` while working on those features. `npm run verify:quick` adds formatting, Astro/TypeScript checks, a production build, gallery-data unit tests, and representative Chromium viewports. `npm run verify` finishes with the complete Chromium, Firefox, and WebKit desktop, tablet, portrait-phone, and short-landscape matrix. See [`TESTING.md`](TESTING.md) for the decision guide and install Playwright's local browser binaries once with `npx playwright install` if they are missing.
+Run `npm run hooks:install` only after downloading
+the project into a new folder or onto a new computer. If you’re unsure, check
+whether `git config --local --get core.hooksPath` prints `.githooks`.
 
-Chromium visual baselines live beside the browser tests. Review intentional visual changes before updating them with:
+This enables the tracked pre-push safety check, which runs
+`npm test` automatically when `git push`, VS Code **Push**,
+**Publish Branch**, or **Sync Changes** sends commits to GitHub. It reports
+failures and stops the push; it never rewrites code, tests, or screenshots.
+
+Use the matching page command while working, then run `npm test` when the
+change is ready. It checks formatting, Astro/TypeScript, a production build,
+photo data, and essential Chromium behavior. `npm run test:all` adds lean
+Firefox desktop and WebKit phone checks and runs on GitHub for pull requests and
+`main`.
+
+Install Microsoft's **Playwright Test for VS Code** extension to run the page
+tests with triangle buttons in VS Code's Testing panel. The extension is
+recommended automatically for this repository. It runs browser tests only, so
+`npm test` remains the complete everyday check.
+
+Visual comparisons are optional and separate. Run `npm run test:visual` after
+changing gallery widths or spacing, image sizes or crops, page margins, header
+positioning, or the overall Home or Work composition. Inspect every difference;
+only update an intentionally changed reference with:
 
 ```sh
-npx playwright test --project=chromium-desktop --update-snapshots
+npm run test:visual -- --update-snapshots
 ```
+
+See [`TESTING.md`](TESTING.md) for the short workflow, VS Code instructions,
+failure guide, and examples. Install Playwright's local browser binaries once
+with `npx playwright install` if they are missing.
 
 Automated emulation catches regressions but does not replace the final iPhone Safari check. Before merging layout changes, load the pushed preview on a real iPhone, start from a fresh tab, and verify the initial Home render, rotation, menu, slideshow controls, and page footers.
 
@@ -90,7 +117,15 @@ There is intentionally no Astro content collection yet. About and Contact are di
 
 ## GitHub workflow
 
-`.github/workflows/quality.yml` runs the quality suite on pull requests and pushes to `main`. GitHub Actions only examines commits that you deliberately push. It does not create commits, push, merge, deploy, or decide when the branch reaches GitHub.
+`.github/workflows/quality.yml` runs `npm run test:all` on pull requests and
+pushes to `main`. GitHub Actions only examines commits that you deliberately
+push. It does not create commits, push, merge, deploy, or decide when the branch
+reaches GitHub.
+
+The local pre-push hook is the earlier safeguard: it runs `npm test` before
+commits leave the computer. GitHub then adds Firefox desktop and WebKit phone
+smoke checks for pull requests and `main`. A feature-branch push without an open
+pull request does not start the GitHub workflow.
 
 The expected flow is:
 

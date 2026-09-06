@@ -27,20 +27,8 @@ jobs:
       - name: Install locked dependencies
         run: npm ci
 
-      - name: Check formatting
-        run: npm run format:check
-
-      - name: Check Astro and TypeScript
-        run: npm run check
-
-      - name: Build production site
-        run: npm run build
-
-      - name: Run gallery data unit tests
-        run: npm run test:unit
-
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
 
-      - name: Run browser tests
-        run: npm run test:e2e
+      - name: Run the complete portfolio test
+        run: npm run test:all

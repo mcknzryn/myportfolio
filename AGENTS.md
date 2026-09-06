@@ -15,14 +15,25 @@ These instructions apply to every coding agent working in this repository.
 - Add focused coverage for new behavior when a regression would matter to a
   visitor, an accessibility path, responsive layout, loading, or a documented
   workflow.
+- Keep coverage proportional to this small portfolio. Prefer essential
+  visitor-visible outcomes and broad behavioral boundaries over exact spacing,
+  alignment, photograph IDs/counts, animation milliseconds, easing values, or
+  other routinely tuned design details.
+- Treat subjective appearance as a manual review responsibility. Keep visual
+  screenshots in the optional `npm run test:visual` command; do not add them to
+  `npm test`, `npm run test:all`, the pre-push hook, or GitHub automation.
 - Never delete, weaken, skip, or regenerate an expectation solely to make a
   failing suite pass. Diagnose whether the code or the intended contract is
   wrong first.
 - Treat a green suite as the normal baseline. Do not label failures “known” or
   leave them unresolved without understanding the cause and obtaining explicit
   user acceptance for the blocker.
-- Run the smallest relevant command during development, then the proportional
-  quick or full verification described in `TESTING.md`.
+- Run the matching page command during development, then `npm test`. Use
+  `npm run test:all` when changing cross-browser infrastructure or preparing a
+  release, as described in `TESTING.md`.
+- Respect the repository's pre-push verification. Do not disable or bypass the
+  hook to avoid a failure; diagnose the failure and leave the relevant suite
+  green. Mention any user-authorized emergency bypass in the final handoff.
 - When adding a test category, command, fixture, browser project, screenshot,
   or maintenance rule, update `TESTING.md` and any affected README command list
   in the same change.

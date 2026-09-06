@@ -1,0 +1,20 @@
+#!/bin/sh
+
+# This hook is a local safety gate, not an auto-fixer. It checks the current
+# working tree before Git sends commits to GitHub and never rewrites code,
+# tests, or images.
+set -u
+
+repository_root=$(git rev-parse --show-toplevel) || exit 1
+cd "$repository_root" || exit 1
+
+printf '\nRunning the portfolio everyday test before push...\n\n'
+
+if npm test; then
+  printf '\nEveryday test passed. Continuing the push.\n\n'
+else
+  verification_status=$?
+  printf '\nPush stopped because the everyday test failed.\n' >&2
+  printf 'Read the first failure, fix the code or update an intentionally changed contract, then push again.\n\n' >&2
+  exit "$verification_status"
+fi

@@ -353,11 +353,36 @@ preserves behavior should continue passing the existing contract.
 
 ### Browser tests
 
-`tests/site.spec.ts` uses Playwright to open the actual site in browser engines and viewport sizes configured by `playwright.config.ts`. It checks visible behavior, accessibility state, layout geometry, image loading, JavaScript fallbacks, and reviewed screenshots.
+The Playwright files in `tests/` are named after the part of the site they
+protect: Home, About, Contact, Work, and shared behavior. Playwright opens the
+actual site, changes viewport sizes, clicks controls, scrolls, and checks what a
+visitor receives. The optional `visual.spec.ts` owns the reviewed Home and Work
+screenshots; it does not run during normal verification.
 
-The names `page`, `browser`, `baseURL`, and `testInfo` are Playwright-provided fixtures. A fixture is a prepared value the test runner passes into a test callback. `test.skip` limits a scenario to the browser or viewport where it is relevant.
+The names `page`, `browser`, and `baseURL` are Playwright-provided fixtures. A
+fixture is a prepared value the test runner passes into a test callback.
+`test-helpers.ts` contains small shared checks for loaded images and document
+safety so the page files stay readable.
 
-The large terminal count comes from applying the logical scenarios to the 12 configured browser/viewport projects. Skipped combinations are expected. A failure repeated in three engines may be one stale or broken behavior contract appearing three times. Future features should use visitor-visible assertions, update test names and expectations alongside intentional design changes, and document new testing workflows in `TESTING.md`.
+The normal `chromium` project runs essential behavior and changes viewport size
+inside the few tests that need responsive coverage. Two smoke projects check
+Firefox desktop and WebKit phone before release. A separate `visual` project
+compares screenshots only when `npm run test:visual` is requested. This keeps
+the Testing panel short and avoids the old matrix of inapplicable skipped cases.
+
+Tests protect important outcomes without turning every design value into a
+contract. They derive the current gallery cohort and photograph count, and use
+broad bounds to distinguish a staggered fade from a flash. Exact gallery IDs,
+alignment choices, milliseconds, easing curves, and small spacing decisions are
+left to intentional editing and visual review.
+
+The tracked `.githooks/pre-push` script runs `npm test` before Git
+sends commits to GitHub. Enable it once per clone with
+`npm run hooks:install`. It is deliberately a check rather than an auto-fixer:
+it stops a failed push but never formats files, changes expectations, or updates
+screenshots. GitHub runs `npm run test:all` for pull requests and `main`, adding
+the lean cross-browser smoke checks. `TESTING.md` explains the VS Code buttons,
+page commands, optional visual test, and how to decide what a failure means.
 
 ### Tool configuration
 
