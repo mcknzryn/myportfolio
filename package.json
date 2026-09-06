@@ -13,6 +13,10 @@
     "check": "astro check",
     "test:unit": "vitest run",
     "test:e2e": "playwright test",
+    "test:contact": "playwright test --project=chromium-desktop --project=firefox-desktop --project=webkit-desktop --project=chromium-phone --project=firefox-phone --project=webkit-phone --project=chromium-short-landscape --grep Contact",
+    "test:gallery": "playwright test --project=chromium-desktop --project=chromium-tablet --project=chromium-phone --project=webkit-phone --grep \"Work gallery|images load successfully|Arrange mode|content and mobile navigation work without JavaScript\"",
+    "test:browser:quick": "playwright test --project=chromium-desktop --project=chromium-phone --project=chromium-short-landscape",
+    "verify:quick": "npm run format:check && npm run check && npm run build && npm run test:unit && npm run test:browser:quick",
     "verify": "npm run format:check && npm run check && npm run build && npm run test:unit && npm run test:e2e"
   },
   "dependencies": {

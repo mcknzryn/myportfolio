@@ -1,6 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const baseURL = "http://127.0.0.1:4321";
+// Keep browser tests isolated from the regular `npm run dev` server on port 4321.
+// Reusing that server can make results depend on when and how it was started.
+const baseURL = "http://127.0.0.1:4322";
 
 export default defineConfig({
   testDir: "./tests",
@@ -104,8 +106,11 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "npm run dev -- --host 127.0.0.1",
+    command: "npm run dev -- --host 127.0.0.1 --port 4322",
+    // Astro 7 backgrounds dev servers when it detects an agent. Playwright
+    // needs to own the foreground process so it can stop it after the suite.
+    env: { ASTRO_DEV_BACKGROUND: "1" },
     url: baseURL,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
   },
 });

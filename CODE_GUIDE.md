@@ -341,6 +341,12 @@ HTML attributes store text, so arrays and objects must be converted to JSON text
 
 ## Reading the tests
 
+`TESTING.md` is the operational companion to this section. Use it to decide
+which command to run and whether a failure calls for an implementation fix or
+an intentional expectation update. The central rule is that tests change when
+the intended behavior changes—not whenever code is edited. A refactor that
+preserves behavior should continue passing the existing contract.
+
 ### Unit tests
 
 `photo-validation.test.ts` exercises one TypeScript function without opening a browser. `describe` groups related cases, `it` states one expected behavior, and `expect` makes the assertion. `validConfiguration()` returns a fresh object for every case so a mutation in one test cannot leak into another.
@@ -350,6 +356,8 @@ HTML attributes store text, so arrays and objects must be converted to JSON text
 `tests/site.spec.ts` uses Playwright to open the actual site in browser engines and viewport sizes configured by `playwright.config.ts`. It checks visible behavior, accessibility state, layout geometry, image loading, JavaScript fallbacks, and reviewed screenshots.
 
 The names `page`, `browser`, `baseURL`, and `testInfo` are Playwright-provided fixtures. A fixture is a prepared value the test runner passes into a test callback. `test.skip` limits a scenario to the browser or viewport where it is relevant.
+
+The large terminal count comes from applying the logical scenarios to the 12 configured browser/viewport projects. Skipped combinations are expected. A failure repeated in three engines may be one stale or broken behavior contract appearing three times. Future features should use visitor-visible assertions, update test names and expectations alongside intentional design changes, and document new testing workflows in `TESTING.md`.
 
 ### Tool configuration
 

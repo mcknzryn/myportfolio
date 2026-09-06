@@ -159,7 +159,10 @@ for (const route of documentRoutes) {
   });
 }
 
-test("Contact centers within the desktop main region", async ({
+// These Contact expectations intentionally mirror the page's `centered-all`
+// BaseLayout choice. If that design choice changes, update the page and these
+// behavioral assertions together; TESTING.md explains when that is appropriate.
+test("Contact uses its centered-all layout on desktop", async ({
   page,
 }, testInfo) => {
   test.skip(
@@ -190,7 +193,7 @@ test("Contact centers within the desktop main region", async ({
     };
   });
 
-  expect(geometry.mainClass).toContain("content-layout-centered-desktop");
+  expect(geometry.mainClass).toContain("content-layout-centered-all");
   expect(geometry.contentCenter).toBeCloseTo(geometry.availableCenter, 0);
   expect(geometry.textAlign).toBe("center");
   expect(geometry.documentHeight).toBeLessThanOrEqual(
@@ -201,17 +204,43 @@ test("Contact centers within the desktop main region", async ({
   );
 });
 
-test("Contact uses default document flow on mobile", async ({
+test("Contact uses its centered-all layout on mobile", async ({
   page,
 }, testInfo) => {
   test.skip(!testInfo.project.name.includes("phone"), "Phone-specific layout");
   await page.goto("/contact/");
 
-  const textAlign = await page
-    .locator(".container")
-    .evaluate((element) => getComputedStyle(element).textAlign);
+  const geometry = await page.evaluate(() => {
+    const header = document
+      .querySelector(".site-header")!
+      .getBoundingClientRect();
+    const contentElement = document.querySelector(".container")!;
+    const content = contentElement.getBoundingClientRect();
+    const footer = document
+      .querySelector(".site-footer")!
+      .getBoundingClientRect();
+    const main = document.querySelector(".site-main")!;
 
-  expect(textAlign).not.toBe("center");
+    return {
+      availableCenter: (header.bottom + footer.top) / 2,
+      contentCenter: (content.top + content.bottom) / 2,
+      documentHeight: document.documentElement.scrollHeight,
+      footerBottom: footer.bottom,
+      mainClass: main.className,
+      textAlign: getComputedStyle(contentElement).textAlign,
+      viewportHeight: window.innerHeight,
+    };
+  });
+
+  expect(geometry.mainClass).toContain("content-layout-centered-all");
+  expect(geometry.contentCenter).toBeCloseTo(geometry.availableCenter, 0);
+  expect(geometry.textAlign).toBe("center");
+  expect(geometry.documentHeight).toBeLessThanOrEqual(
+    geometry.viewportHeight + 1,
+  );
+  expect(geometry.footerBottom).toBeLessThanOrEqual(
+    geometry.viewportHeight + 1,
+  );
 });
 
 test("Contact permits emergency document scrolling", async ({

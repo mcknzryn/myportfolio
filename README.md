@@ -6,6 +6,8 @@ An Astro photography portfolio with a deliberately small layout system, one cano
 
 [`CODE_GUIDE.md`](CODE_GUIDE.md) is a plain-language tour of the project's JavaScript and TypeScript. It explains where each kind of code runs, how photographs move through the system, what the project-specific names mean, and how to read the browser scripts and tests. The source files also contain nearby teaching comments for the details that are easiest to understand beside the code.
 
+[`TESTING.md`](TESTING.md) is the practical guide for working safely without an assistant. It lists what each check protects, which command to run for each kind of edit, how to decide whether code or a test should change, and how to inspect browser and screenshot failures.
+
 ## Layout system
 
 Every page uses `src/layouts/BaseLayout.astro` and must provide a `title` and one of two modes:
@@ -59,12 +61,16 @@ npm run format
 npm run format:check
 npm run check
 npm run test:unit
+npm run test:contact
+npm run test:gallery
+npm run test:browser:quick
 npm run build
 npm run test:e2e
+npm run verify:quick
 npm run verify
 ```
 
-`npm run verify` runs formatting, Astro/TypeScript checks, a production build, gallery-data unit tests, and browser tests. Playwright covers Chromium, Firefox, and WebKit across desktop, tablet, portrait-phone, and short-landscape viewports. Install its local browser binaries once with `npx playwright install` if they are missing.
+Use `npm run test:contact` or `npm run test:gallery` while working on those features. `npm run verify:quick` adds formatting, Astro/TypeScript checks, a production build, gallery-data unit tests, and representative Chromium viewports. `npm run verify` finishes with the complete Chromium, Firefox, and WebKit desktop, tablet, portrait-phone, and short-landscape matrix. See [`TESTING.md`](TESTING.md) for the decision guide and install Playwright's local browser binaries once with `npx playwright install` if they are missing.
 
 Chromium visual baselines live beside the browser tests. Review intentional visual changes before updating them with:
 
