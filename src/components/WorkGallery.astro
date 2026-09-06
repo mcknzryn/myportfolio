@@ -3,7 +3,7 @@
 // canonical data from photos.ts into gallery HTML and, in development only,
 // passes arrangement configuration to the browser through data-* attributes.
 
-import { Image } from "astro:assets";
+import { getImage, Image } from "astro:assets";
 import {
   galleryFavorites,
   galleryPinned,
@@ -14,6 +14,24 @@ import {
 // `galleryColumns` is a local presentation name for three columns of complete
 // PhotoRecord objects. `workGalleryColumns` above contains only their IDs.
 const galleryColumns = workPhotoColumns;
+
+const mobileImagesById = new Map(
+  await Promise.all(
+    galleryColumns.flat().map(
+      async (photo) =>
+        [
+          photo.id,
+          await getImage({
+            src: photo.image,
+            width: 800,
+            widths: [320, 480, 640, 800],
+            quality: 70,
+            format: "webp",
+          }),
+        ] as const,
+    ),
+  ),
+);
 ---
 
 <!--
@@ -38,22 +56,33 @@ const galleryColumns = workPhotoColumns;
   {
     galleryColumns.map((column) => (
       <div class="gallery-column">
-        {column.map((photo) => (
-          <figure class="gallery-item" data-image-id={photo.id}>
-            <picture>
-              <Image
-                src={photo.image}
-                alt={photo.alt}
-                draggable={false}
-                widths={[320, 480, 640, 800, 1080, 1280]}
-                sizes="(max-width: 900px) 30vw, 28vw"
-                quality={70}
-                format="webp"
-                loading="lazy"
-              />
-            </picture>
-          </figure>
-        ))}
+        {column.map((photo) => {
+          const mobileImage = mobileImagesById.get(photo.id)!;
+
+          return (
+            <figure class="gallery-item" data-image-id={photo.id}>
+              <picture>
+                <source
+                  media="(max-width: 800px)"
+                  srcset={mobileImage.srcSet.attribute}
+                  sizes="30vw"
+                  type="image/webp"
+                />
+                <Image
+                  src={photo.image}
+                  alt={photo.alt}
+                  draggable={false}
+                  width={1600}
+                  widths={[320, 480, 640, 800, 1080, 1280, 1600]}
+                  sizes="(max-width: 800px) 30vw, (max-width: 1600px) 28vw, 448px"
+                  quality={82}
+                  format="webp"
+                  loading="lazy"
+                />
+              </picture>
+            </figure>
+          );
+        })}
       </div>
     ))
   }
@@ -91,15 +120,14 @@ const galleryColumns = workPhotoColumns;
     display: block;
   }
 
+  :global(html.js) .gallery-item :global(img):not(.is-revealed) {
+    opacity: 0;
+  }
+
   .gallery-item :global(img) {
     width: 100%;
     height: auto;
-    opacity: 1;
     transition: opacity 900ms cubic-bezier(0.22, 1, 0.36, 1);
-  }
-
-  .gallery-item :global(img).is-reveal-pending {
-    opacity: 0;
   }
 
   .gallery-item :global(img).is-revealed {
@@ -225,11 +253,5 @@ const galleryColumns = workPhotoColumns;
     color: #000;
     resize: vertical;
     font: 0.8rem/1.4 monospace;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .gallery-item :global(img) {
-      transition: none;
-    }
   }
 </style>

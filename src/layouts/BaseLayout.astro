@@ -49,6 +49,9 @@ const {
     <title>
       {title === "Home" ? "McKenzie Ryan" : `${title} | McKenzie Ryan`}
     </title>
+    <script is:inline>
+      document.documentElement.classList.add("js");
+    </script>
   </head>
   <body class={`layout-${mode}`} data-layout-mode={mode}>
     <div class="site-shell">
