@@ -202,20 +202,30 @@ Important invariants include:
 
 This script is a progressive enhancement: the gallery is readable without it, but it adds a gentle reveal when JavaScript is available.
 
-It first finds the gallery and uses `if (gallery)` as a guard. Everything else is inside that guard so the script safely does nothing on a page without a gallery.
+An inline script in `BaseLayout.astro` adds `js` to the root `<html>` element before the page is painted. `WorkGallery.astro` uses that marker to hide images that do not yet have `is-revealed`. If JavaScript is disabled, the marker is never added and the images remain visible.
 
-On small screens, the first three images in each column are changed to eager loading. This prepares enough content ahead of the longer mobile reading flow.
+The script first finds the gallery and uses `if (gallery)` as a guard, so it safely does nothing on pages without a gallery. On screens up to 800px wide, it changes the first three images in each column to eager loading. This prepares enough content ahead of the longer mobile reading flow without eagerly loading the complete portfolio.
 
 The reveal functions form a progression:
 
-- `reveal` changes CSS classes.
-- `revealImmediately` applies that action to every image.
-- `revealAfterDecode` waits for the browser to decode an already-loaded image when possible.
-- `revealWhenReady` chooses whether to decode now or first wait for `load`/`error`.
+- `reveal` adds the permanent visible state and a temporary class that starts the shared CSS keyframe.
+- `revealImmediately` applies only the permanent state while animations and transitions are temporarily disabled.
+- `waitForImage` returns a promise that settles after loading and decoding when possible; an error also settles it so one image cannot stall the gallery.
+- `revealWhenReady` combines that preparation with revealing one independently observed image.
+- `getInitialViewportImages` uses `getBoundingClientRect` to select images intersecting the true viewport rather than the observer's larger preload area.
+- `revealInitialViewportImages` prepares that opening group concurrently and then applies the appropriate reveal pattern.
 
-An `IntersectionObserver` watches without running a scroll handler continuously. Its callback receives entries describing observed images. When an image approaches the visible area, the script stops observing it and begins the load/decode/reveal process.
+Every normally animated reveal uses the same 900ms `gallery-image-reveal` CSS keyframe. Unlike a transition, the keyframe explicitly supplies its opacity-0 starting point even when a cached page has not painted an earlier hidden frame. JavaScript controls the order and writes each image's `--gallery-reveal-delay`; CSS schedules those delays together on its animation timeline. The temporary `is-reveal-animated` class disables the ordinary opacity transition while the keyframe runs, then an `animationend` or `animationcancel` event removes both that class and the temporary delay. The transition remains available afterward for the hover effect.
 
-The outer `try`/`catch` protects the enhancement. If setup fails, the catch reveals everything so a visual effect can never hide the portfolio permanently.
+The rendered HTML contains one complete column before the next, so the `images` array is already in column-major order. Above 800px, the opening group follows that order: top-to-bottom in the first column, then the second and third columns. `desktopRevealInterval` is the 70ms gap between starts; making that number smaller speeds up the cascade. Because each opacity animation lasts 900ms, later columns begin while earlier columns are still visibly fading. Desktop keeps the original `cubic-bezier(0.22, 1, 0.36, 1)` easing.
+
+At 800px and below, many more small images fit in the viewport. Instead of carrying the column cascade into that dense layout, the script orders the opening group top-to-bottom and left-to-right, then applies a very small `mobileRevealInterval` of 35ms. This micro-wave reads as one soft entrance without making every image jump in on the same instant. Mobile uses the gentler `cubic-bezier(0.42, 0, 0.58, 1)` opacity easing. The shared duration and both easing declarations live beside `gallery-image-reveal` in `WorkGallery.astro`; the two interval constants live near the top of `gallery-reveal.js`.
+
+An `IntersectionObserver` watches the images outside the opening group without running a scroll handler continuously. Its desktop bottom margin is 12%; mobile keeps the original expanded `100% 0px 150% 0px` preload area. Observer entries wait only until the final opening animation has started, then each qualifying image independently loads, decodes, reveals without a delay, and stops being observed.
+
+Reduced-motion visitors, Arrange mode, and browsers without `IntersectionObserver` bypass the opening sequence. The temporary `is-reveal-immediate` gallery class disables animation and transition while the script commits every image's final visible state, then is removed so ordinary hover behavior remains available.
+
+`WorkGallery.astro` also creates separate responsive WebP sources. Mobile candidates span 320–800px at quality 70. The desktop image uses quality 82 with candidates through 1600px, allowing larger portfolio displays to stay sharper without serving the original multi-megabyte files everywhere.
 
 ## Reading `gallery-arrange.js`
 
