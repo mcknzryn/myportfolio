@@ -274,6 +274,10 @@ Autoplay is split into small decisions and actions:
 - `stopAutoplay` clears the interval and resets the tracking variable.
 - `resumeAutoplayAfterClick` gives a manual choice a short pause before autoplay resumes.
 
+Pointer clicks resume autoplay even though browsers may leave the clicked control focused. Keyboard interaction clears that pointer allowance, so autoplay stays paused while a keyboard user remains inside the slideshow. Clicks synthesized by assistive technology follow the safer keyboard behavior.
+
+`desktopAutoplayInterval` and `mobileAutoplayInterval` are the slideshow cadence controls, in milliseconds. The existing 801px media query selects between them. If a visitor crosses that breakpoint while autoplay is running, the script replaces the active interval so the new cadence takes effect; paused slideshows remain paused.
+
 The script listens for button clicks, arrow keys, focus changes, touch gestures, tab visibility, reduced-motion changes, viewport changes, and image loads. `requestAnimationFrame` groups control-position measurements with the browser's next paint rather than measuring repeatedly in the middle of other work.
 
 Type expressions such as `querySelector<HTMLElement>` tell TypeScript which kind of element is expected. Optional chaining (`?.`) safely skips work if an optional button or image was not found.

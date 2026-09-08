@@ -78,3 +78,38 @@ test("Home slideshow responds to buttons and the keyboard", async ({
     secondAlt ?? "",
   );
 });
+
+test("Home slideshow resumes autoplay after a pointer control click", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("/");
+  const activeImage = page.locator(".slide.active img");
+
+  await page.getByRole("button", { name: "Next image" }).click();
+  const selectedAlt = await activeImage.getAttribute("alt");
+
+  await expect
+    .poll(() => activeImage.getAttribute("alt"), { timeout: 5_000 })
+    .not.toBe(selectedAlt);
+});
+
+test("Home slideshow stays paused during keyboard interaction", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("/");
+  const activeImage = page.locator(".slide.active img");
+  const nextButton = page.getByRole("button", { name: "Next image" });
+
+  await nextButton.focus();
+  const firstAlt = await activeImage.getAttribute("alt");
+  await page.keyboard.press("Enter");
+  await expect(activeImage).not.toHaveAttribute("alt", firstAlt ?? "");
+  const keyboardSelectedAlt = await activeImage.getAttribute("alt");
+
+  // This exceeds the current resume delay plus one autoplay interval without
+  // asserting either tuning value as an exact visitor-facing contract.
+  await page.waitForTimeout(2_500);
+  await expect(activeImage).toHaveAttribute("alt", keyboardSelectedAlt ?? "");
+});

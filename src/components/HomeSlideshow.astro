@@ -188,6 +188,9 @@ const slides = homePhotos;
     // the active desktop image. Their numeric values are CSS pixel measurements.
     const desktopControlMargin = 32;
     const desktopCenterGap = 160;
+    // These durations control how long each slide remains active before the next one appears. 
+    const desktopAutoplayInterval = 1600;
+    const mobileAutoplayInterval = 1250;
 
     // `current...` means active now. The timer variables hold browser timer IDs
     // or `undefined` when no corresponding work is scheduled.
@@ -198,6 +201,7 @@ const slides = homePhotos;
     let autoplay: number | undefined;
     let resumeTimeout: number | undefined;
     let touchStartX = 0;
+    let pointerFocusedControl = false;
 
     // --- Positioning desktop previous/next controls -----------------------
 
@@ -261,20 +265,26 @@ const slides = homePhotos;
 
     // --- Autoplay rules and timer ownership -------------------------------
 
-    // A `can...` function is a Boolean question. Autoplay requires multiple
-    // slides, a visible tab, no reduced-motion request, and no keyboard focus
-    // inside the stage.
+    // A pointer can leave a control focused after a click, but that focus should
+    // not turn a brief manual pause into a permanent stop. Keyboard interaction
+    // clears `pointerFocusedControl`, preserving the accessible focus pause.
     const canAutoplay = () =>
       slides.length > 1 &&
       !document.hidden &&
       !reducedMotionQuery.matches &&
-      !stage.matches(":focus-within");
+      (pointerFocusedControl || !stage.matches(":focus-within"));
+
+    const getAutoplayInterval = () =>
+      desktopQuery.matches ? desktopAutoplayInterval : mobileAutoplayInterval;
 
     // `autoplay === undefined` guarantees that only one repeating interval can
     // exist. stopAutoplay both clears it and restores that “none running” state.
     const startAutoplay = () => {
       if (canAutoplay() && autoplay === undefined) {
-        autoplay = window.setInterval(() => showSlide(currentIndex + 1), 2500);
+        autoplay = window.setInterval(
+          () => showSlide(currentIndex + 1),
+          getAutoplayInterval(),
+        );
       }
     };
 
@@ -287,7 +297,8 @@ const slides = homePhotos;
 
     // Manual pointer choices briefly stop autoplay so the chosen image is not
     // immediately replaced. A new click cancels any older pending resume.
-    const resumeAutoplayAfterClick = () => {
+    const resumeAutoplayAfterClick = (pointerInitiated: boolean) => {
+      pointerFocusedControl = pointerInitiated;
       stopAutoplay();
       if (resumeTimeout !== undefined) window.clearTimeout(resumeTimeout);
       resumeTimeout = window.setTimeout(() => {
@@ -299,19 +310,21 @@ const slides = homePhotos;
     // --- User input --------------------------------------------------------
 
     // Optional chaining allows either button to be absent without throwing.
-    previousButton?.addEventListener("click", () => {
+    previousButton?.addEventListener("click", (event) => {
       showSlide(currentIndex - 1);
-      resumeAutoplayAfterClick();
+      resumeAutoplayAfterClick(event.detail > 0);
     });
 
-    nextButton?.addEventListener("click", () => {
+    nextButton?.addEventListener("click", (event) => {
       showSlide(currentIndex + 1);
-      resumeAutoplayAfterClick();
+      resumeAutoplayAfterClick(event.detail > 0);
     });
 
     // Arrow-key navigation belongs to the stage. preventDefault stops the page
     // from interpreting these handled keys as a different browser action.
     stage.addEventListener("keydown", (event) => {
+      pointerFocusedControl = false;
+      stopAutoplay();
       if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
         event.preventDefault();
         showSlide(currentIndex + (event.key === "ArrowLeft" ? -1 : 1));
@@ -319,7 +332,12 @@ const slides = homePhotos;
     });
 
     stage.addEventListener("focusin", stopAutoplay);
-    stage.addEventListener("focusout", () => window.setTimeout(startAutoplay));
+    stage.addEventListener("focusout", () =>
+      window.setTimeout(() => {
+        if (!stage.matches(":focus-within")) pointerFocusedControl = false;
+        startAutoplay();
+      }),
+    );
 
     // A swipe is represented by the distance between touchstart and touchend.
     // `passive: true` promises these handlers will not cancel browser scrolling.
@@ -356,7 +374,15 @@ const slides = homePhotos;
       stopAutoplay();
       startAutoplay();
     });
-    desktopQuery.addEventListener("change", scheduleDesktopControlUpdate);
+    desktopQuery.addEventListener("change", () => {
+      scheduleDesktopControlUpdate();
+      // Apply the new cadence immediately only when autoplay is already active.
+      // A focus, motion-preference, or manual-choice pause remains undisturbed.
+      if (autoplay !== undefined) {
+        stopAutoplay();
+        startAutoplay();
+      }
+    });
     window.addEventListener("resize", scheduleDesktopControlUpdate);
     slides.forEach((slide) => {
       slide
