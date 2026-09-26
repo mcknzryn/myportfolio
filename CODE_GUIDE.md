@@ -288,6 +288,8 @@ Type expressions such as `querySelector<HTMLElement>` tell TypeScript which kind
 
 `BaseLayout.astro` defines a small vocabulary of permitted layout modes. A union such as `"viewport" | "document"` means no other string is valid. `Props` is the contract each page follows when it uses the layout. Destructuring `Astro.props` extracts those values and supplies defaults for optional ones.
 
+`BackToTop.astro` is also mounted by the shared layout. Its link stays hidden and outside the keyboard order until the page can scroll and the visitor has moved more than half a viewport from the top. The browser script rechecks that threshold while scrolling and resizing, then returns to the page's `#page-top` target smoothly unless the visitor prefers reduced motion. CSS keeps the control at the lower-right on both desktop and mobile, including safe-area spacing on devices with inset screen edges. As the footer enters the viewport, the same update measures its visible height and adds that distance to the control's bottom offset so the two never overlap.
+
 `WorkGallery.astro` is the bridge between typed build-time data and browser enhancements. It renders `PhotoRecord` values as images. In development only, it serializes selected configuration arrays with `JSON.stringify` into HTML `data-*` attributes so the plain JavaScript arrange tool can read them.
 
 ## Syntax used throughout the project

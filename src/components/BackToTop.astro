@@ -1,0 +1,156 @@
+<!--
+  Safe edits: change the arrow or label in the two spans below. Colors, border,
+  type, size, and spacing live in `.back-to-top`; none require script changes.
+-->
+<a
+  class="back-to-top"
+  href="#page-top"
+  data-back-to-top
+  aria-hidden="true"
+  tabindex="-1"
+>
+  <span aria-hidden="true">↑</span>
+  <span>Back to top</span>
+</a>
+
+<style>
+  /* Most visual tuning belongs in this rule. */
+  .back-to-top {
+    position: fixed;
+    right: max(
+      var(--chrome-inline-padding),
+      calc(env(safe-area-inset-right, 0px) + 1rem)
+    );
+    /* Keep the normal edge/safe-area gap, then add only the footer portion
+       currently visible. The script supplies the second value. */
+    bottom: calc(
+      max(1rem, calc(env(safe-area-inset-bottom, 0px) + 1rem)) +
+        var(--back-to-top-footer-offset, 0px)
+    );
+    z-index: 15;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    min-height: 2.75rem;
+    padding-inline: 0.75rem;
+    border: 1px solid currentColor;
+    visibility: hidden;
+    background: #fff;
+    color: #000;
+    font-size: 0.7rem;
+    font-weight: var(--font-weight-roman);
+    line-height: 1;
+    letter-spacing: 0.04em;
+    opacity: 0;
+    pointer-events: none;
+    text-transform: uppercase;
+    transform: translateY(0.5rem);
+    transition:
+      opacity 180ms ease,
+      transform 180ms ease,
+      visibility 0s linear 180ms;
+  }
+
+  .back-to-top.is-visible {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+    transition-delay: 0s;
+  }
+
+  @media (hover: hover) {
+    .back-to-top:hover {
+      color: blue;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+  }
+</style>
+
+<script>
+  // These selectors connect this component to its link and the shared footer.
+  // The footer is optional so the control still works if a future layout omits it.
+  const backToTop = document.querySelector<HTMLElement>("[data-back-to-top]");
+  const footer = document.querySelector<HTMLElement>(".site-footer");
+
+  if (backToTop) {
+    // This browser preference decides whether clicking should glide or jump to
+    // the top. It does not affect when the control becomes visible.
+    const reducedMotionQuery = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    );
+    let updateFrame: number | undefined;
+
+    // `scrollHeight` is the whole document and `innerHeight` is the visible
+    // window. Comparing them keeps the control off pages that cannot scroll.
+    const updateVisibility = () => {
+      updateFrame = undefined;
+      const pageCanScroll =
+        document.documentElement.scrollHeight > window.innerHeight + 1;
+
+      // Safe tuning point: `/ 2` means “show after half a viewport.” Change
+      // only this divisor if the control should appear earlier or later.
+      const shouldShow =
+        pageCanScroll && window.scrollY > window.innerHeight / 2;
+
+      // `getBoundingClientRect()` reports the footer relative to the viewport.
+      // Subtracting its top from the viewport height gives the visible portion.
+      // `max` prevents a negative offset before the footer arrives; `min` stops
+      // the offset from ever exceeding the footer's complete height.
+      const footerBounds = footer?.getBoundingClientRect();
+      const visibleFooterHeight = footerBounds
+        ? Math.min(
+            footerBounds.height,
+            Math.max(0, window.innerHeight - footerBounds.top),
+          )
+        : 0;
+
+      // CSS adds this measurement to the ordinary bottom gap, moving the
+      // control upward just enough to avoid covering the footer.
+      backToTop.style.setProperty(
+        "--back-to-top-footer-offset",
+        `${visibleFooterHeight}px`,
+      );
+      backToTop.classList.toggle("is-visible", shouldShow);
+
+      // A visually hidden control must also leave the screen-reader and
+      // keyboard orders. These attributes keep all three states in sync.
+      if (shouldShow) {
+        backToTop.removeAttribute("aria-hidden");
+        backToTop.removeAttribute("tabindex");
+      } else {
+        backToTop.setAttribute("aria-hidden", "true");
+        backToTop.setAttribute("tabindex", "-1");
+      }
+    };
+
+    // Scroll events can fire many times per frame. requestAnimationFrame groups
+    // them into at most one measurement before the browser's next paint.
+    const scheduleVisibilityUpdate = () => {
+      if (updateFrame === undefined) {
+        updateFrame = window.requestAnimationFrame(updateVisibility);
+      }
+    };
+
+    backToTop.addEventListener("click", (event) => {
+      // JavaScript adds motion-awareness; the link's href remains the semantic
+      // destination if this enhancement is changed or removed later.
+      event.preventDefault();
+      window.scrollTo({
+        top: 0,
+        behavior: reducedMotionQuery.matches ? "auto" : "smooth",
+      });
+    });
+
+    // `passive` tells the browser this handler will not cancel scrolling, so it
+    // can keep the page responsive while scheduling the next measurement.
+    window.addEventListener("scroll", scheduleVisibilityUpdate, {
+      passive: true,
+    });
+    window.addEventListener("resize", scheduleVisibilityUpdate);
+    window.addEventListener("load", scheduleVisibilityUpdate);
+    scheduleVisibilityUpdate();
+  }
+</script>

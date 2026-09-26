@@ -1,5 +1,9 @@
 import { expect, test } from "@playwright/test";
-import { expectImageLoaded, phoneViewport } from "./test-helpers";
+import {
+  desktopViewport,
+  expectImageLoaded,
+  phoneViewport,
+} from "./test-helpers";
 
 const routeTitles = [
   ["/", "McKenzie Ryan"],
@@ -37,6 +41,69 @@ test("Mobile navigation opens accessibly and closes with Escape", async ({
   await page.keyboard.press("Escape");
   await expect(menu).not.toHaveAttribute("open", "");
   await expect(menu.locator("summary")).toBeFocused();
+});
+
+test("Back to top appears only after scrolling on desktop and phone", async ({
+  page,
+}) => {
+  for (const viewport of [desktopViewport, phoneViewport]) {
+    await page.setViewportSize(viewport);
+    await page.goto("/work/");
+    const backToTop = page.locator("[data-back-to-top]");
+
+    await expect(backToTop).toBeHidden();
+    await expect(backToTop).toHaveAttribute("aria-hidden", "true");
+    await expect(backToTop).toHaveAttribute("tabindex", "-1");
+
+    await page.evaluate(() => window.scrollTo(0, window.innerHeight));
+    await expect(backToTop).toBeVisible();
+    await expect(backToTop).not.toHaveAttribute("aria-hidden", "true");
+    await expect(backToTop).not.toHaveAttribute("tabindex", "-1");
+
+    await page.evaluate(() =>
+      window.scrollTo(0, document.documentElement.scrollHeight),
+    );
+    await expect(backToTop).toBeVisible();
+    await expect
+      .poll(() =>
+        page.evaluate(() => {
+          const button = document
+            .querySelector("[data-back-to-top]")
+            ?.getBoundingClientRect();
+          const footer = document
+            .querySelector(".site-footer")
+            ?.getBoundingClientRect();
+          return (button?.bottom ?? Infinity) <= (footer?.top ?? -Infinity) + 1;
+        }),
+      )
+      .toBe(true);
+
+    await backToTop.click();
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+    await expect(backToTop).toBeHidden();
+    await expect(backToTop).toHaveAttribute("tabindex", "-1");
+  }
+});
+
+test("Back to top stays hidden when a page does not overflow", async ({
+  page,
+}) => {
+  for (const [route, viewport] of [
+    ["/", desktopViewport],
+    ["/contact/", phoneViewport],
+  ] as const) {
+    await page.setViewportSize(viewport);
+    await page.goto(route);
+    const backToTop = page.locator("[data-back-to-top]");
+    const pageCanScroll = await page.evaluate(
+      () => document.documentElement.scrollHeight > window.innerHeight + 1,
+    );
+
+    expect(pageCanScroll).toBe(false);
+    await expect(backToTop).toBeHidden();
+    await expect(backToTop).toHaveAttribute("aria-hidden", "true");
+    await expect(backToTop).toHaveAttribute("tabindex", "-1");
+  }
 });
 
 test("Essential content and navigation remain available without JavaScript", async ({
