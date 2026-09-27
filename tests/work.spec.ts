@@ -250,6 +250,11 @@ test("Work photographs expand without captions on desktop and phone", async ({
     await expect(page.locator("html")).toHaveClass(/lightbox-open/);
     await expect(page.locator("body")).toHaveClass(/lightbox-open/);
 
+    const closeButton = dialog.getByRole("button", {
+      name: "Close expanded photograph",
+    });
+    await expect(closeButton).toContainText("Close");
+
     const geometry = await expandedImage.evaluate((image) => {
       const bounds = image.getBoundingClientRect();
       return {
@@ -268,9 +273,7 @@ test("Work photographs expand without captions on desktop and phone", async ({
     expect(geometry.right).toBeLessThanOrEqual(geometry.viewportWidth + 1);
     expect(geometry.bottom).toBeLessThanOrEqual(geometry.viewportHeight + 1);
 
-    await dialog
-      .getByRole("button", { name: "Close expanded photograph" })
-      .click();
+    await closeButton.click();
     expect(
       await dialog.evaluate((element: HTMLDialogElement) => element.open),
     ).toBe(false);
@@ -336,16 +339,84 @@ test("Work lightbox navigation wraps and all close paths restore focus", async (
   const firstTrigger = triggers.first();
   const dialog = page.locator("[data-lightbox]");
   const expandedImage = dialog.locator("[data-lightbox-image]");
+  const previousButton = dialog.getByRole("button", {
+    name: "Previous photograph",
+  });
+  const nextButton = dialog.getByRole("button", {
+    name: "Next photograph",
+  });
   await firstTrigger.click();
+  await expectImageLoaded(expandedImage);
 
-  await dialog.getByRole("button", { name: "Previous photograph" }).click();
+  await expect(previousButton).toHaveText("");
+  await expect(nextButton).toHaveText("");
+  await expect(previousButton).toHaveCSS("cursor", "w-resize");
+  await expect(nextButton).toHaveCSS("cursor", "e-resize");
+  await expect
+    .poll(() =>
+      dialog.evaluate((element) => {
+        const image = element.querySelector("[data-lightbox-image]");
+        const area = element.querySelector("[data-lightbox-swipe-area]");
+        const previous = element.querySelector("[data-lightbox-previous]");
+        const next = element.querySelector("[data-lightbox-next]");
+        if (!image || !area || !previous || !next) return undefined;
+
+        const imageBounds = image.getBoundingClientRect();
+        const areaBounds = area.getBoundingClientRect();
+        const previousBounds = previous.getBoundingClientRect();
+        const nextBounds = next.getBoundingClientRect();
+        const centerElement = document.elementFromPoint(
+          imageBounds.left + imageBounds.width / 2,
+          imageBounds.top + imageBounds.height / 2,
+        );
+        return {
+          extendsLeft: previousBounds.left < imageBounds.left,
+          extendsRight: nextBounds.right > imageBounds.right,
+          hasCenterGap: previousBounds.right < nextBounds.left,
+          centerIsNeutral: !centerElement?.closest(".lightbox-navigation"),
+          spansHeight:
+            Math.abs(previousBounds.top - areaBounds.top) <= 1 &&
+            Math.abs(previousBounds.bottom - areaBounds.bottom) <= 1 &&
+            Math.abs(nextBounds.top - areaBounds.top) <= 1 &&
+            Math.abs(nextBounds.bottom - areaBounds.bottom) <= 1,
+        };
+      }),
+    )
+    .toEqual({
+      extendsLeft: true,
+      extendsRight: true,
+      hasCenterGap: true,
+      centerIsNeutral: true,
+      spansHeight: true,
+    });
+
+  const clickExtendedSide = async (side: "left" | "right") => {
+    const bounds = await expandedImage.boundingBox();
+    if (!bounds) throw new Error("Expanded photograph has no visible bounds");
+    await page.mouse.click(
+      side === "left" ? bounds.x - 16 : bounds.x + bounds.width + 16,
+      bounds.y + bounds.height / 2,
+    );
+  };
+
+  await clickExtendedSide("left");
   await expect(expandedImage).toHaveAttribute("alt", alts.at(-1)!);
   await page.keyboard.press("ArrowRight");
   await expect(expandedImage).toHaveAttribute("alt", alts[0]);
-  await dialog.getByRole("button", { name: "Next photograph" }).click();
+  await clickExtendedSide("right");
   await expect(expandedImage).toHaveAttribute("alt", alts[1]);
   await page.keyboard.press("ArrowLeft");
   await expect(expandedImage).toHaveAttribute("alt", alts[0]);
+
+  const imageBounds = await expandedImage.boundingBox();
+  if (!imageBounds)
+    throw new Error("Expanded photograph has no visible bounds");
+  await page.mouse.click(
+    imageBounds.x + imageBounds.width / 2,
+    imageBounds.y + imageBounds.height / 2,
+  );
+  await expect(expandedImage).toHaveAttribute("alt", alts[0]);
+  await expect(dialog).toHaveAttribute("open", "");
 
   await page.keyboard.press("Escape");
   expect(
@@ -355,9 +426,10 @@ test("Work lightbox navigation wraps and all close paths restore focus", async (
   await expect(firstTrigger).toBeFocused();
 
   await firstTrigger.click();
-  await dialog.locator("[data-lightbox-swipe-area]").click({
-    position: { x: 5, y: 5 },
-  });
+  const swipeArea = dialog.locator("[data-lightbox-swipe-area]");
+  const areaBounds = await swipeArea.boundingBox();
+  if (!areaBounds) throw new Error("Lightbox canvas has no visible bounds");
+  await page.mouse.click(areaBounds.x + areaBounds.width / 2, areaBounds.y + 5);
   expect(
     await dialog.evaluate((element: HTMLDialogElement) => element.open),
   ).toBe(false);
@@ -386,7 +458,7 @@ test("Work lightbox restores a scrolled gallery position", async ({ page }) => {
     .toBe(startingScrollPosition);
 });
 
-test("Work lightbox supports one-finger swipes but ignores multi-touch", async ({
+test("Work mobile lightbox fields support taps and swipes but ignore multi-touch", async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
@@ -399,19 +471,83 @@ test("Work lightbox supports one-finger swipes but ignores multi-touch", async (
   const dialog = page.locator("[data-lightbox]");
   const swipeArea = dialog.locator("[data-lightbox-swipe-area]");
   const expandedImage = dialog.locator("[data-lightbox-image]");
+  const previousButton = dialog.getByRole("button", {
+    name: "Previous photograph",
+  });
+  const nextButton = dialog.getByRole("button", {
+    name: "Next photograph",
+  });
 
   await triggers.first().click();
-  await swipeArea.dispatchEvent("pointerdown", {
-    pointerId: 1,
-    pointerType: "touch",
-    clientX: 300,
-    clientY: 300,
+  await expectImageLoaded(expandedImage);
+
+  const mobileGeometry = await dialog.evaluate((element) => {
+    const image = element.querySelector("[data-lightbox-image]");
+    const area = element.querySelector("[data-lightbox-swipe-area]");
+    const previous = element.querySelector("[data-lightbox-previous]");
+    const next = element.querySelector("[data-lightbox-next]");
+    if (!image || !area || !previous || !next) return undefined;
+
+    const imageBounds = image.getBoundingClientRect();
+    const areaBounds = area.getBoundingClientRect();
+    const previousBounds = previous.getBoundingClientRect();
+    const nextBounds = next.getBoundingClientRect();
+    const centerElement = document.elementFromPoint(
+      imageBounds.left + imageBounds.width / 2,
+      imageBounds.top + imageBounds.height / 2,
+    );
+    return {
+      previousWidthRatio: previousBounds.width / areaBounds.width,
+      nextWidthRatio: nextBounds.width / areaBounds.width,
+      centerGapRatio:
+        (nextBounds.left - previousBounds.right) / areaBounds.width,
+      centerIsNeutral: !centerElement?.closest(".lightbox-navigation"),
+    };
   });
-  await swipeArea.dispatchEvent("pointerup", {
-    pointerId: 1,
-    pointerType: "touch",
-    clientX: 200,
-    clientY: 305,
+  expect(mobileGeometry?.previousWidthRatio).toBeCloseTo(0.28, 2);
+  expect(mobileGeometry?.nextWidthRatio).toBeCloseTo(0.28, 2);
+  expect(mobileGeometry?.centerGapRatio).toBeCloseTo(0.44, 2);
+  expect(mobileGeometry?.centerIsNeutral).toBe(true);
+
+  const imageBounds = await expandedImage.boundingBox();
+  if (!imageBounds)
+    throw new Error("Expanded photograph has no visible bounds");
+  await page.mouse.click(
+    imageBounds.x + imageBounds.width / 2,
+    imageBounds.y + imageBounds.height / 2,
+  );
+  await expect(expandedImage).toHaveAttribute("alt", firstAlt ?? "");
+
+  await nextButton.click();
+  await expect(expandedImage).toHaveAttribute("alt", secondAlt ?? "");
+  await previousButton.click();
+  await expect(expandedImage).toHaveAttribute("alt", firstAlt ?? "");
+
+  await swipeArea.evaluate((area) => {
+    const nextControl = area.querySelector("[data-lightbox-next]");
+    if (!(nextControl instanceof HTMLButtonElement)) {
+      throw new Error("Next lightbox control is missing");
+    }
+    const dispatchTouchPointer = (type: string, x: number, y: number) =>
+      nextControl.dispatchEvent(
+        new PointerEvent(type, {
+          bubbles: true,
+          pointerId: 1,
+          pointerType: "touch",
+          clientX: x,
+          clientY: y,
+        }),
+      );
+
+    dispatchTouchPointer("pointerdown", 300, 300);
+    dispatchTouchPointer("pointerup", 200, 305);
+    nextControl.dispatchEvent(
+      new PointerEvent("click", {
+        bubbles: true,
+        pointerId: 1,
+        pointerType: "touch",
+      }),
+    );
   });
   await expect(expandedImage).toHaveAttribute("alt", secondAlt ?? "");
 

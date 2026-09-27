@@ -16,7 +16,18 @@ test("Important portfolio content works in this browser", async ({ page }) => {
   await workTrigger.click();
   const lightbox = page.locator("[data-lightbox]");
   await expect(lightbox).toBeVisible();
-  await expectImageLoaded(lightbox.locator("[data-lightbox-image]"));
+  const lightboxImage = lightbox.locator("[data-lightbox-image]");
+  await expectImageLoaded(lightboxImage);
+  const initialLightboxAlt = await lightboxImage.getAttribute("alt");
+  const nextLightboxControl = lightbox.getByRole("button", {
+    name: "Next photograph",
+  });
+  await expect(nextLightboxControl).toHaveCSS("cursor", "e-resize");
+  await nextLightboxControl.click();
+  await expect(lightboxImage).not.toHaveAttribute(
+    "alt",
+    initialLightboxAlt ?? "",
+  );
   await lightbox
     .getByRole("button", { name: "Close expanded photograph" })
     .click();

@@ -134,6 +134,16 @@ const lightboxImagesById = new Map(
         alt=""
         draggable="false"
       />
+      <button
+        class="lightbox-navigation lightbox-previous"
+        type="button"
+        aria-label="Previous photograph"
+        data-lightbox-previous></button>
+      <button
+        class="lightbox-navigation lightbox-next"
+        type="button"
+        aria-label="Next photograph"
+        data-lightbox-next></button>
     </div>
     <button
       class="lightbox-control lightbox-close"
@@ -143,22 +153,7 @@ const lightboxImagesById = new Map(
       autofocus
     >
       <span aria-hidden="true">×</span>
-    </button>
-    <button
-      class="lightbox-control lightbox-previous"
-      type="button"
-      aria-label="Previous photograph"
-      data-lightbox-previous
-    >
-      <span aria-hidden="true">←</span>
-    </button>
-    <button
-      class="lightbox-control lightbox-next"
-      type="button"
-      aria-label="Next photograph"
-      data-lightbox-next
-    >
-      <span aria-hidden="true">→</span>
+      <span>Close</span>
     </button>
   </div>
 </dialog>
@@ -348,7 +343,7 @@ const lightboxImagesById = new Map(
 
   :global(.arrange-toolbar button) {
     padding: 0.5rem 0.75rem;
-    border: 1px solid currentColor;
+    border: 0;
     background: transparent;
     color: inherit;
     cursor: pointer;
@@ -412,6 +407,7 @@ const lightboxImagesById = new Map(
   }
 
   .lightbox-image-area {
+    position: relative;
     display: flex;
     width: 100%;
     height: 100%;
@@ -448,43 +444,93 @@ const lightboxImagesById = new Map(
     opacity: 0;
   }
 
-  .lightbox-control {
+  .lightbox-navigation {
     position: absolute;
-    display: inline-flex;
-    width: 2.75rem;
-    height: 2.75rem;
+    z-index: 1;
+    top: 0;
+    display: block;
+    width: 28%;
+    height: 100%;
     padding: 0;
-    border: 1px solid currentColor;
-    border-radius: 50%;
-    align-items: center;
-    justify-content: center;
-    background: rgb(255 255 255 / 92%);
-    color: #000;
-    cursor: pointer;
-    font: 1.25rem/1 var(--font-sans);
+    border: 0;
+    background: transparent;
+    color: transparent;
+    font-size: 0;
   }
 
-  .lightbox-control:hover {
-    background: #000;
-    color: #fff;
+  .lightbox-navigation:focus-visible {
+    outline: 2px solid #000;
+    outline-offset: -2px;
+  }
+
+  .lightbox-previous {
+    left: 0;
+    cursor: w-resize;
+  }
+
+  .lightbox-next {
+    right: 0;
+    cursor: e-resize;
+  }
+
+  @media (min-width: 801px) {
+    .lightbox-navigation {
+      width: var(--lightbox-navigation-width, 0px);
+    }
+
+    .lightbox-previous {
+      left: var(--lightbox-navigation-left, 0px);
+    }
+
+    .lightbox-next {
+      right: var(--lightbox-navigation-right, 0px);
+    }
+  }
+
+  .lightbox-surface.is-browser-zoomed .lightbox-navigation {
+    pointer-events: none;
+  }
+
+  .lightbox-control {
+    appearance: none;
+    position: absolute;
+    display: inline-flex;
+    min-height: 2.75rem;
+    padding-inline: 0.75rem;
+    border: 0;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    background: transparent;
+    color: #000;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    font-size: 0.7rem;
+    font-weight: var(--font-weight-roman);
+    line-height: 1;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .lightbox-close:focus-visible {
+    outline: none;
+    color: blue;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  @media (hover: hover) {
+    .lightbox-control:hover {
+      color: blue;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
   }
 
   .lightbox-close {
     top: max(1rem, env(safe-area-inset-top, 0px));
+    z-index: 2;
     right: max(1rem, env(safe-area-inset-right, 0px));
-    font-size: 1.5rem;
-  }
-
-  .lightbox-previous {
-    top: 50%;
-    left: max(1rem, env(safe-area-inset-left, 0px));
-    transform: translateY(-50%);
-  }
-
-  .lightbox-next {
-    top: 50%;
-    right: max(1rem, env(safe-area-inset-right, 0px));
-    transform: translateY(-50%);
   }
 
   :global(html.lightbox-open),
@@ -506,13 +552,6 @@ const lightboxImagesById = new Map(
         max(0.75rem, env(safe-area-inset-right, 0px))
         max(4rem, calc(env(safe-area-inset-bottom, 0px) + 3rem))
         max(0.75rem, env(safe-area-inset-left, 0px));
-    }
-
-    .lightbox-previous,
-    .lightbox-next {
-      top: auto;
-      bottom: max(1rem, env(safe-area-inset-bottom, 0px));
-      transform: none;
     }
   }
 

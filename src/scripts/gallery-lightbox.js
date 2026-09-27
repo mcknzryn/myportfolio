@@ -45,12 +45,18 @@ if (
     let imageRequest = 0;
     let swipeStart;
     let openingFrame;
+    let navigationFrame;
+    let touchControlClickReset;
     let closing = false;
+    let suppressTouchControlClick = false;
     const activeTouchPointers = new Set();
     const preloadedImages = new Map();
+    const desktopQuery = window.matchMedia("(min-width: 801px)");
     const reducedMotionQuery = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     );
+    const desktopControlMargin = 32;
+    const desktopCenterGap = 160;
     const closeTransitionFallback = 800;
 
     const browserIsZoomed = () =>
@@ -58,6 +64,60 @@ if (
 
     const updateBrowserZoomState = () => {
       surface.classList.toggle("is-browser-zoomed", browserIsZoomed());
+    };
+
+    // Match Home's navigation geometry: desktop fields extend slightly beyond
+    // the photograph while preserving a neutral center. Mobile CSS supplies
+    // fixed side fields, so desktop-only properties are removed there.
+    const updateNavigationFields = () => {
+      navigationFrame = undefined;
+      if (!lightbox.open) return;
+
+      if (!desktopQuery.matches) {
+        swipeArea.style.removeProperty("--lightbox-navigation-width");
+        swipeArea.style.removeProperty("--lightbox-navigation-left");
+        swipeArea.style.removeProperty("--lightbox-navigation-right");
+        return;
+      }
+
+      const areaBounds = swipeArea.getBoundingClientRect();
+      const imageBounds = expandedImage.getBoundingClientRect();
+      if (imageBounds.width <= 0 || imageBounds.height <= 0) return;
+
+      const imageLeft = Math.max(
+        0,
+        imageBounds.left - areaBounds.left - desktopControlMargin,
+      );
+      const imageRight = Math.max(
+        0,
+        areaBounds.right - imageBounds.right - desktopControlMargin,
+      );
+      const controlWidth = Math.max(
+        0,
+        Math.min(
+          imageBounds.width / 2 + desktopControlMargin - desktopCenterGap / 2,
+          areaBounds.width / 2,
+        ),
+      );
+
+      swipeArea.style.setProperty(
+        "--lightbox-navigation-width",
+        `${controlWidth}px`,
+      );
+      swipeArea.style.setProperty(
+        "--lightbox-navigation-left",
+        `${imageLeft}px`,
+      );
+      swipeArea.style.setProperty(
+        "--lightbox-navigation-right",
+        `${imageRight}px`,
+      );
+    };
+
+    const scheduleNavigationFieldUpdate = () => {
+      if (navigationFrame === undefined) {
+        navigationFrame = window.requestAnimationFrame(updateNavigationFields);
+      }
     };
 
     const normalizedIndex = (index) =>
@@ -98,10 +158,12 @@ if (
       expandedImage.sizes = "100vw";
       expandedImage.srcset = data.srcset;
       expandedImage.src = data.src;
+      scheduleNavigationFieldUpdate();
 
       const revealLoadedImage = () => {
         if (request === imageRequest) {
           expandedImage.classList.remove("is-loading");
+          scheduleNavigationFieldUpdate();
         }
       };
       expandedImage.addEventListener("load", revealLoadedImage, { once: true });
@@ -138,6 +200,7 @@ if (
       lightbox.showModal();
       closeButton.focus();
       updateBrowserZoomState();
+      scheduleNavigationFieldUpdate();
 
       if (reducedMotionQuery.matches) {
         lightbox.classList.add("is-visible");
@@ -200,12 +263,18 @@ if (
     });
 
     closeButton.addEventListener("click", closeLightbox);
-    previousButton.addEventListener("click", () =>
-      showPhotograph(currentIndex - 1),
-    );
-    nextButton.addEventListener("click", () =>
-      showPhotograph(currentIndex + 1),
-    );
+    const navigateFromControl = (offset) => (event) => {
+      // A browser can synthesize a click after pointerup. When that pointerup
+      // already completed a swipe, ignore the click rather than moving twice.
+      if (suppressTouchControlClick) {
+        event.preventDefault();
+        return;
+      }
+      showPhotograph(currentIndex + offset);
+    };
+
+    previousButton.addEventListener("click", navigateFromControl(-1));
+    nextButton.addEventListener("click", navigateFromControl(1));
 
     lightbox.addEventListener("keydown", (event) => {
       if (event.key === "ArrowLeft") {
@@ -244,7 +313,13 @@ if (
       closing = false;
       lightbox.classList.remove("is-visible");
       swipeStart = undefined;
+      suppressTouchControlClick = false;
       activeTouchPointers.clear();
+      window.clearTimeout(touchControlClickReset);
+      if (navigationFrame !== undefined) {
+        window.cancelAnimationFrame(navigationFrame);
+        navigationFrame = undefined;
+      }
       surface.classList.remove("is-browser-zoomed");
       unlockPage();
       activeTrigger?.focus({ preventScroll: true });
@@ -254,6 +329,7 @@ if (
     // Multi-touch and browser-zoomed gestures remain entirely browser-owned.
     swipeArea.addEventListener("pointerdown", (event) => {
       if (event.pointerType !== "touch") return;
+      window.clearTimeout(touchControlClickReset);
       activeTouchPointers.add(event.pointerId);
 
       if (activeTouchPointers.size === 1 && !browserIsZoomed()) {
@@ -264,6 +340,7 @@ if (
         };
       } else {
         swipeStart = undefined;
+        suppressTouchControlClick = true;
       }
     });
 
@@ -281,23 +358,35 @@ if (
       swipeStart = undefined;
 
       if (
-        Math.abs(horizontalDistance) < 50 ||
-        Math.abs(horizontalDistance) <= Math.abs(verticalDistance) * 1.25
+        Math.abs(horizontalDistance) >= 50 &&
+        Math.abs(horizontalDistance) > Math.abs(verticalDistance) * 1.25
       ) {
-        return;
+        suppressTouchControlClick = true;
+        showPhotograph(
+          horizontalDistance < 0 ? currentIndex + 1 : currentIndex - 1,
+        );
       }
 
-      showPhotograph(
-        horizontalDistance < 0 ? currentIndex + 1 : currentIndex - 1,
-      );
+      if (activeTouchPointers.size === 0) {
+        touchControlClickReset = window.setTimeout(() => {
+          suppressTouchControlClick = false;
+          touchControlClickReset = undefined;
+        }, 0);
+      }
     });
 
     swipeArea.addEventListener("pointercancel", (event) => {
       activeTouchPointers.delete(event.pointerId);
       swipeStart = undefined;
+      if (activeTouchPointers.size === 0) suppressTouchControlClick = false;
     });
 
-    window.visualViewport?.addEventListener("resize", updateBrowserZoomState);
+    window.addEventListener("resize", scheduleNavigationFieldUpdate);
+    desktopQuery.addEventListener("change", scheduleNavigationFieldUpdate);
+    window.visualViewport?.addEventListener("resize", () => {
+      updateBrowserZoomState();
+      scheduleNavigationFieldUpdate();
+    });
     window.visualViewport?.addEventListener("scroll", updateBrowserZoomState);
   }
 }
