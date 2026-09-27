@@ -32,6 +32,32 @@ const mobileImagesById = new Map(
     ),
   ),
 );
+
+// Lightbox candidates are generated separately from the small gallery sources.
+// Their URLs are written into data attributes, so the browser does not request
+// any of them until a visitor chooses a photograph.
+const lightboxImagesById = new Map(
+  await Promise.all(
+    galleryColumns.flat().map(async (photo) => {
+      const maximumWidth = Math.min(photo.image.width, 3000);
+      const widths = [800, 1200, 1600, 2000, 2400, 3000].filter(
+        (width) => width <= maximumWidth,
+      );
+      if (!widths.includes(maximumWidth)) widths.push(maximumWidth);
+
+      return [
+        photo.id,
+        await getImage({
+          src: photo.image,
+          width: maximumWidth,
+          widths,
+          quality: 82,
+          format: "webp",
+        }),
+      ] as const;
+    }),
+  ),
+);
 ---
 
 <!--
@@ -58,28 +84,39 @@ const mobileImagesById = new Map(
       <div class="gallery-column">
         {column.map((photo) => {
           const mobileImage = mobileImagesById.get(photo.id)!;
+          const lightboxImage = lightboxImagesById.get(photo.id)!;
 
           return (
             <figure class="gallery-item" data-image-id={photo.id}>
-              <picture>
-                <source
-                  media="(max-width: 800px)"
-                  srcset={mobileImage.srcSet.attribute}
-                  sizes="30vw"
-                  type="image/webp"
-                />
-                <Image
-                  src={photo.image}
-                  alt={photo.alt}
-                  draggable={false}
-                  width={1600}
-                  widths={[320, 480, 640, 800, 1080, 1280, 1600]}
-                  sizes="(max-width: 800px) 30vw, (max-width: 1600px) 28vw, 448px"
-                  quality={82}
-                  format="webp"
-                  loading="lazy"
-                />
-              </picture>
+              <a
+                class="gallery-image-link"
+                href={lightboxImage.src}
+                data-lightbox-trigger
+                data-lightbox-src={lightboxImage.src}
+                data-lightbox-srcset={lightboxImage.srcSet.attribute}
+                data-lightbox-width={photo.image.width}
+                data-lightbox-height={photo.image.height}
+              >
+                <picture>
+                  <source
+                    media="(max-width: 800px)"
+                    srcset={mobileImage.srcSet.attribute}
+                    sizes="30vw"
+                    type="image/webp"
+                  />
+                  <Image
+                    src={photo.image}
+                    alt={photo.alt}
+                    draggable={false}
+                    width={1600}
+                    widths={[320, 480, 640, 800, 1080, 1280, 1600]}
+                    sizes="(max-width: 800px) 30vw, (max-width: 1600px) 28vw, 448px"
+                    quality={82}
+                    format="webp"
+                    loading="lazy"
+                  />
+                </picture>
+              </a>
             </figure>
           );
         })}
@@ -88,8 +125,47 @@ const mobileImagesById = new Map(
   }
 </section>
 
-<!-- Reveal is a public progressive enhancement; arrange is a DEV-only tool. -->
+<dialog class="work-lightbox" data-lightbox aria-label="Expanded photograph">
+  <div class="lightbox-surface" data-lightbox-surface>
+    <div class="lightbox-image-area" data-lightbox-swipe-area>
+      <img
+        class="lightbox-image"
+        data-lightbox-image
+        alt=""
+        draggable="false"
+      />
+    </div>
+    <button
+      class="lightbox-control lightbox-close"
+      type="button"
+      aria-label="Close expanded photograph"
+      data-lightbox-close
+      autofocus
+    >
+      <span aria-hidden="true">×</span>
+    </button>
+    <button
+      class="lightbox-control lightbox-previous"
+      type="button"
+      aria-label="Previous photograph"
+      data-lightbox-previous
+    >
+      <span aria-hidden="true">←</span>
+    </button>
+    <button
+      class="lightbox-control lightbox-next"
+      type="button"
+      aria-label="Next photograph"
+      data-lightbox-next
+    >
+      <span aria-hidden="true">→</span>
+    </button>
+  </div>
+</dialog>
+
+<!-- Reveal and lightbox are public enhancements; arrange is a DEV-only tool. -->
 <script src="../scripts/gallery-reveal.js"></script>
+<script src="../scripts/gallery-lightbox.js"></script>
 {import.meta.env.DEV && <script src="../scripts/gallery-arrange.js" />}
 
 <style>
@@ -113,6 +189,15 @@ const mobileImagesById = new Map(
     background: #fff;
     break-inside: avoid;
     touch-action: pan-y;
+  }
+
+  .gallery-image-link {
+    display: block;
+    cursor: pointer;
+  }
+
+  .gallery-image-link:focus-visible {
+    outline-offset: -3px;
   }
 
   .gallery-item :global(picture),
@@ -174,6 +259,10 @@ const mobileImagesById = new Map(
     cursor: grab;
     touch-action: none;
     user-select: none;
+  }
+
+  :global(body.arrange-mode) .gallery-image-link {
+    pointer-events: none;
   }
 
   :global(body.arrange-mode) .gallery {
@@ -280,5 +369,158 @@ const mobileImagesById = new Map(
     color: #000;
     resize: vertical;
     font: 0.8rem/1.4 monospace;
+  }
+
+  .work-lightbox {
+    --lightbox-transition-duration: 700ms;
+    --lightbox-transition-easing: cubic-bezier(0.4, 0, 0.2, 1);
+
+    width: 100vw;
+    max-width: none;
+    height: 100vh;
+    height: 100dvh;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    background: transparent;
+    color: #000;
+    opacity: 0;
+    transition: opacity var(--lightbox-transition-duration)
+      var(--lightbox-transition-easing);
+  }
+
+  .work-lightbox::backdrop {
+    background: rgb(255 255 255 / 0%);
+    transition: background-color var(--lightbox-transition-duration)
+      var(--lightbox-transition-easing);
+  }
+
+  .work-lightbox.is-visible {
+    opacity: 1;
+  }
+
+  .work-lightbox.is-visible::backdrop {
+    background: rgb(255 255 255 / 94%);
+  }
+
+  .lightbox-surface {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+
+  .lightbox-image-area {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    align-items: center;
+    justify-content: center;
+    padding: max(4rem, calc(env(safe-area-inset-top, 0px) + 3rem))
+      max(4.75rem, calc(env(safe-area-inset-right, 0px) + 4rem))
+      max(4rem, calc(env(safe-area-inset-bottom, 0px) + 3rem))
+      max(4.75rem, calc(env(safe-area-inset-left, 0px) + 4rem));
+    touch-action: pan-y pinch-zoom;
+  }
+
+  .lightbox-surface.is-browser-zoomed .lightbox-image-area {
+    touch-action: pan-x pan-y pinch-zoom;
+  }
+
+  .lightbox-image {
+    display: block;
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    max-height: 100%;
+    object-fit: contain;
+    opacity: 1;
+    -webkit-user-drag: none;
+    user-select: none;
+    transition: opacity var(--lightbox-transition-duration)
+      var(--lightbox-transition-easing);
+  }
+
+  .lightbox-image.is-loading {
+    opacity: 0;
+  }
+
+  .lightbox-control {
+    position: absolute;
+    display: inline-flex;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+    background: rgb(255 255 255 / 92%);
+    color: #000;
+    cursor: pointer;
+    font: 1.25rem/1 var(--font-sans);
+  }
+
+  .lightbox-control:hover {
+    background: #000;
+    color: #fff;
+  }
+
+  .lightbox-close {
+    top: max(1rem, env(safe-area-inset-top, 0px));
+    right: max(1rem, env(safe-area-inset-right, 0px));
+    font-size: 1.5rem;
+  }
+
+  .lightbox-previous {
+    top: 50%;
+    left: max(1rem, env(safe-area-inset-left, 0px));
+    transform: translateY(-50%);
+  }
+
+  .lightbox-next {
+    top: 50%;
+    right: max(1rem, env(safe-area-inset-right, 0px));
+    transform: translateY(-50%);
+  }
+
+  :global(html.lightbox-open),
+  :global(body.lightbox-open) {
+    overflow: hidden;
+  }
+
+  :global(body.lightbox-open) {
+    position: fixed;
+    top: var(--lightbox-scroll-offset, 0);
+    right: 0;
+    left: 0;
+    width: 100%;
+  }
+
+  @media (max-width: 800px) {
+    .lightbox-image-area {
+      padding: max(4rem, calc(env(safe-area-inset-top, 0px) + 3rem))
+        max(0.75rem, env(safe-area-inset-right, 0px))
+        max(4rem, calc(env(safe-area-inset-bottom, 0px) + 3rem))
+        max(0.75rem, env(safe-area-inset-left, 0px));
+    }
+
+    .lightbox-previous,
+    .lightbox-next {
+      top: auto;
+      bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+      transform: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .work-lightbox,
+    .work-lightbox::backdrop,
+    .lightbox-image {
+      transition: none;
+    }
   }
 </style>

@@ -24,6 +24,7 @@ When a source comment says “we call this…,” it is calling attention to a p
 JavaScript supplies the behavior that runs in a visitor's browser. The files in `src/scripts/` find HTML elements that Astro has already rendered and progressively enhance them:
 
 - `gallery-reveal.js` reveals Work images as they approach the viewport.
+- `gallery-lightbox.js` expands Work images and controls lightbox navigation.
 - `gallery-arrange.js` turns the Work gallery into a development-only visual editor.
 
 These particular files use plain `.js`, although browser code can also be written in TypeScript. Their values come from a live page, so the scripts must still check for elements at runtime; TypeScript annotations could assist development but could not guarantee what a browser page actually contains.
@@ -62,10 +63,10 @@ photo-validation.ts checks that the complete configuration agrees
 HomeSlideshow.astro                WorkGallery.astro
 renders Home HTML                  renders Work HTML and photo IDs
              |                          |
-             v                          +-------------------------+
-Home browser script                v                         v
-controls slides           gallery-reveal.js         gallery-arrange.js
-                          reveals images             edits DEV order only
+             v                    +-----------+-----------+
+Home browser script              v           v           v
+controls slides          gallery-reveal  lightbox     arrange tool
+                         reveals images  expands them edits DEV order only
 ```
 
 The image file's basename is its stable ID. For example, `29.jpg` has the ID `"29"`. Code uses that short ID to join four things that have different jobs:
@@ -225,7 +226,21 @@ An `IntersectionObserver` watches the images outside the opening group without r
 
 Reduced-motion visitors, Arrange mode, and browsers without `IntersectionObserver` bypass the opening sequence. The temporary `is-reveal-immediate` gallery class disables animation and transition while the script commits every image's final visible state, then is removed so ordinary hover behavior remains available.
 
-`WorkGallery.astro` also creates separate responsive WebP sources. Mobile candidates span 320–800px at quality 70. The desktop image uses quality 82 with candidates through 1600px, allowing larger portfolio displays to stay sharper without serving the original multi-megabyte files everywhere.
+`WorkGallery.astro` also creates separate responsive WebP sources. Mobile candidates span 320–800px at quality 70. The desktop image uses quality 82 with candidates through 1600px, allowing larger portfolio displays to stay sharper without serving the original multi-megabyte files everywhere. Lightbox candidates continue up to the useful source width or 3000px, whichever is smaller. Their URLs live in link data attributes rather than an image element, so opening photographs—not loading the gallery—requests those larger files.
+
+## Reading `gallery-lightbox.js`
+
+Every Work photograph is a normal link to its optimized large image. `gallery-lightbox.js` intercepts that link only when the browser supports `<dialog>`, so JavaScript-free and older-browser visits retain a useful fallback. Arrange mode disables the links because its drag editor owns the same pointer input.
+
+One shared dialog displays the selected photograph. The trigger links are already in the configured column-major order, so previous and next navigation can move through that array and use modulo arithmetic to wrap at both ends. The script updates the dialog image's responsive source, dimensions, and existing alt text, then preloads the neighboring sources. A request number prevents an older load event from revealing stale content after rapid navigation.
+
+Native dialog behavior supplies modal semantics, keyboard focus containment, and Escape handling. The script adds arrow-key navigation, labeled icon controls, backdrop closing, page-scroll locking, and restoration of the original scroll position and trigger focus. No caption, filename, or position counter is rendered.
+
+The dialog canvas is transparent over a 94%-opaque white backdrop. The backdrop, controls, and photograph fade in together, and every close path reverses that fade before the dialog releases focus and restores the page position. A large image that finishes loading after the dialog opens receives the same soft opacity transition instead of appearing abruptly. Reduced-motion visitors bypass both waits.
+
+The lightbox uses the Home slideshow's 700ms `cubic-bezier(0.4, 0, 0.2, 1)` motion language. The `--lightbox-transition-duration` and `--lightbox-transition-easing` values in `WorkGallery.astro` are the safe tuning points; `closeTransitionFallback` in `gallery-lightbox.js` must remain slightly longer than the CSS duration so a missed transition event can never leave the modal stuck open.
+
+The swipe code tracks one touch pointer and requires at least 50px of mostly horizontal movement. A second touch cancels the candidate swipe, leaving pinch zoom to the browser. `visualViewport.scale` similarly disables swipe navigation after browser zoom and switches the touch-action rule so the visitor can pan the zoomed viewport. The site's viewport metadata does not restrict normal pinch or browser zoom; there is no custom image magnification layer.
 
 ## Reading `gallery-arrange.js`
 
@@ -290,7 +305,7 @@ Type expressions such as `querySelector<HTMLElement>` tell TypeScript which kind
 
 `BackToTop.astro` is also mounted by the shared layout. Its link stays hidden and outside the keyboard order until the page can scroll and the visitor has moved more than half a viewport from the top. The browser script rechecks that threshold while scrolling and resizing, then returns to the page's `#page-top` target smoothly unless the visitor prefers reduced motion. CSS keeps the control at the lower-right on both desktop and mobile, including safe-area spacing on devices with inset screen edges. As the footer enters the viewport, the same update measures its visible height and adds that distance to the control's bottom offset so the two never overlap.
 
-`WorkGallery.astro` is the bridge between typed build-time data and browser enhancements. It renders `PhotoRecord` values as images. In development only, it serializes selected configuration arrays with `JSON.stringify` into HTML `data-*` attributes so the plain JavaScript arrange tool can read them.
+`WorkGallery.astro` is the bridge between typed build-time data and browser enhancements. It renders `PhotoRecord` values as responsive gallery images and creates the dormant large-image sources used by fallback links and the lightbox. In development only, it serializes selected configuration arrays with `JSON.stringify` into HTML `data-*` attributes so the plain JavaScript arrange tool can read them.
 
 ## Syntax used throughout the project
 

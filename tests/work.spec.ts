@@ -211,11 +211,239 @@ test("Work loads responsive portfolio images", async ({ page }) => {
         mobileMedia: source.media,
         mobileLargest: largestWidth(source.srcset),
         desktopLargest: largestWidth(image.srcset),
+        lightboxLargest: largestWidth(
+          picture.closest<HTMLElement>("[data-lightbox-trigger]")?.dataset
+            .lightboxSrcset ?? "",
+        ),
       };
     });
   expect(sources.mobileMedia).toContain("max-width: 800px");
   expect(sources.mobileLargest).toBeGreaterThan(0);
   expect(sources.desktopLargest).toBeGreaterThan(sources.mobileLargest);
+  expect(sources.lightboxLargest).toBeGreaterThan(sources.desktopLargest);
+});
+
+test("Work photographs expand without captions on desktop and phone", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+
+  for (const viewport of [desktopViewport, phoneViewport]) {
+    await page.setViewportSize(viewport);
+    await page.goto("/work/");
+
+    const trigger = page.locator("[data-lightbox-trigger]").first();
+    const thumbnailAlt = await trigger.locator("img").getAttribute("alt");
+    const dialog = page.locator("[data-lightbox]");
+    const expandedImage = dialog.locator("[data-lightbox-image]");
+
+    await expect(dialog).not.toHaveAttribute("open", "");
+    await expect(expandedImage).not.toHaveAttribute("src");
+    await trigger.click();
+
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toHaveAttribute("open", "");
+    await expect(expandedImage).toHaveAttribute("alt", thumbnailAlt ?? "");
+    await expectImageLoaded(expandedImage);
+    await expect(dialog.locator("figcaption")).toHaveCount(0);
+    await expect(dialog).not.toContainText(/photo\s+\d+\s+of\s+\d+/i);
+    await expect(page.locator("html")).toHaveClass(/lightbox-open/);
+    await expect(page.locator("body")).toHaveClass(/lightbox-open/);
+
+    const geometry = await expandedImage.evaluate((image) => {
+      const bounds = image.getBoundingClientRect();
+      return {
+        top: bounds.top,
+        right: bounds.right,
+        bottom: bounds.bottom,
+        left: bounds.left,
+        viewportWidth: window.innerWidth,
+        viewportHeight: window.innerHeight,
+        objectFit: getComputedStyle(image).objectFit,
+      };
+    });
+    expect(geometry.objectFit).toBe("contain");
+    expect(geometry.top).toBeGreaterThanOrEqual(-1);
+    expect(geometry.left).toBeGreaterThanOrEqual(-1);
+    expect(geometry.right).toBeLessThanOrEqual(geometry.viewportWidth + 1);
+    expect(geometry.bottom).toBeLessThanOrEqual(geometry.viewportHeight + 1);
+
+    await dialog
+      .getByRole("button", { name: "Close expanded photograph" })
+      .click();
+    expect(
+      await dialog.evaluate((element: HTMLDialogElement) => element.open),
+    ).toBe(false);
+    await expect(dialog).not.toHaveAttribute("open", "");
+    await expect(trigger).toBeFocused();
+    await expect(page.locator("html")).not.toHaveClass(/lightbox-open/);
+    await expect(page.locator("body")).not.toHaveClass(/lightbox-open/);
+  }
+});
+
+test("Work lightbox fades open and remains modal through its closing fade", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("/work/");
+
+  const trigger = page.locator("[data-lightbox-trigger]").first();
+  const dialog = page.locator("[data-lightbox]");
+  const closeButton = dialog.getByRole("button", {
+    name: "Close expanded photograph",
+  });
+
+  await trigger.click();
+  await expect(dialog).toHaveClass(/is-visible/);
+  await expect(dialog).toHaveCSS("opacity", "1");
+  const openingStyle = await dialog.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return {
+      opacity: style.opacity,
+      transitionDuration: Number.parseFloat(style.transitionDuration),
+      transitionProperty: style.transitionProperty,
+    };
+  });
+  expect(openingStyle.opacity).toBe("1");
+  expect(openingStyle.transitionProperty).toContain("opacity");
+  expect(openingStyle.transitionDuration).toBeGreaterThan(0);
+
+  await closeButton.click();
+  await expect(dialog).not.toHaveClass(/is-visible/);
+  expect(
+    await dialog.evaluate((element: HTMLDialogElement) => element.open),
+  ).toBe(true);
+  await expect(trigger).not.toBeFocused();
+
+  await expect(dialog).not.toHaveAttribute("open", "");
+  await expect(trigger).toBeFocused();
+});
+
+test("Work lightbox navigation wraps and all close paths restore focus", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/work/");
+
+  const triggers = page.locator("[data-lightbox-trigger]");
+  const alts = await triggers
+    .locator("img")
+    .evaluateAll((images) =>
+      images.map((image) => (image as HTMLImageElement).alt),
+    );
+  expect(alts.length).toBeGreaterThan(2);
+
+  const firstTrigger = triggers.first();
+  const dialog = page.locator("[data-lightbox]");
+  const expandedImage = dialog.locator("[data-lightbox-image]");
+  await firstTrigger.click();
+
+  await dialog.getByRole("button", { name: "Previous photograph" }).click();
+  await expect(expandedImage).toHaveAttribute("alt", alts.at(-1)!);
+  await page.keyboard.press("ArrowRight");
+  await expect(expandedImage).toHaveAttribute("alt", alts[0]);
+  await dialog.getByRole("button", { name: "Next photograph" }).click();
+  await expect(expandedImage).toHaveAttribute("alt", alts[1]);
+  await page.keyboard.press("ArrowLeft");
+  await expect(expandedImage).toHaveAttribute("alt", alts[0]);
+
+  await page.keyboard.press("Escape");
+  expect(
+    await dialog.evaluate((element: HTMLDialogElement) => element.open),
+  ).toBe(false);
+  await expect(dialog).not.toHaveAttribute("open", "");
+  await expect(firstTrigger).toBeFocused();
+
+  await firstTrigger.click();
+  await dialog.locator("[data-lightbox-swipe-area]").click({
+    position: { x: 5, y: 5 },
+  });
+  expect(
+    await dialog.evaluate((element: HTMLDialogElement) => element.open),
+  ).toBe(false);
+  await expect(dialog).not.toHaveAttribute("open", "");
+  await expect(firstTrigger).toBeFocused();
+});
+
+test("Work lightbox restores a scrolled gallery position", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/work/");
+
+  const trigger = page.locator("[data-lightbox-trigger]").nth(8);
+  await trigger.scrollIntoViewIfNeeded();
+  const startingScrollPosition = await page.evaluate(() => window.scrollY);
+  expect(startingScrollPosition).toBeGreaterThan(0);
+
+  await trigger.click();
+  await expect(page.locator("body")).toHaveCSS("position", "fixed");
+  await page
+    .locator("[data-lightbox]")
+    .getByRole("button", { name: "Close expanded photograph" })
+    .click();
+  await expect(trigger).toBeFocused();
+  await expect
+    .poll(() => page.evaluate(() => window.scrollY))
+    .toBe(startingScrollPosition);
+});
+
+test("Work lightbox supports one-finger swipes but ignores multi-touch", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.setViewportSize(phoneViewport);
+  await page.goto("/work/");
+
+  const triggers = page.locator("[data-lightbox-trigger]");
+  const firstAlt = await triggers.first().locator("img").getAttribute("alt");
+  const secondAlt = await triggers.nth(1).locator("img").getAttribute("alt");
+  const dialog = page.locator("[data-lightbox]");
+  const swipeArea = dialog.locator("[data-lightbox-swipe-area]");
+  const expandedImage = dialog.locator("[data-lightbox-image]");
+
+  await triggers.first().click();
+  await swipeArea.dispatchEvent("pointerdown", {
+    pointerId: 1,
+    pointerType: "touch",
+    clientX: 300,
+    clientY: 300,
+  });
+  await swipeArea.dispatchEvent("pointerup", {
+    pointerId: 1,
+    pointerType: "touch",
+    clientX: 200,
+    clientY: 305,
+  });
+  await expect(expandedImage).toHaveAttribute("alt", secondAlt ?? "");
+
+  await swipeArea.dispatchEvent("pointerdown", {
+    pointerId: 2,
+    pointerType: "touch",
+    clientX: 300,
+    clientY: 300,
+  });
+  await swipeArea.dispatchEvent("pointerdown", {
+    pointerId: 3,
+    pointerType: "touch",
+    clientX: 260,
+    clientY: 300,
+  });
+  await swipeArea.dispatchEvent("pointerup", {
+    pointerId: 2,
+    pointerType: "touch",
+    clientX: 180,
+    clientY: 300,
+  });
+  await swipeArea.dispatchEvent("pointerup", {
+    pointerId: 3,
+    pointerType: "touch",
+    clientX: 140,
+    clientY: 300,
+  });
+  await expect(expandedImage).toHaveAttribute("alt", secondAlt ?? "");
+
+  await page.keyboard.press("Escape");
+  await expect(triggers.first()).toBeFocused();
+  expect(firstAlt).not.toBe(secondAlt);
 });
 
 test("Work remains usable on desktop and phone", async ({ page }) => {
@@ -297,5 +525,12 @@ test("Work Arrange mode uses the gallery's current photographs", async ({
   ).toBeVisible();
   const items = page.locator(".gallery-item[data-image-id]");
   expect(await items.count()).toBeGreaterThan(0);
+  const lightboxTrigger = page.locator("[data-lightbox-trigger]").first();
+  await expect(lightboxTrigger).toHaveAttribute("aria-disabled", "true");
+  await expect(lightboxTrigger).toHaveAttribute("tabindex", "-1");
+  await lightboxTrigger.evaluate((trigger: HTMLAnchorElement) =>
+    trigger.click(),
+  );
+  await expect(page.locator("[data-lightbox]")).not.toHaveAttribute("open", "");
   await expectImmediateReveal(page);
 });

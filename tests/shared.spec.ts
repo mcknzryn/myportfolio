@@ -125,7 +125,10 @@ test("Essential content and navigation remain available without JavaScript", asy
 
   await page.goto("/work/");
   const workImages = page.locator(".gallery-item img");
+  const workImageLinks = page.locator("[data-lightbox-trigger]");
   expect(await workImages.count()).toBeGreaterThan(0);
+  await expect(workImageLinks).toHaveCount(await workImages.count());
+  await expect(workImageLinks.first()).toHaveAttribute("href", /.+/);
   for (const image of await workImages.all()) {
     await expect(image).toBeVisible();
   }

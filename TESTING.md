@@ -81,6 +81,8 @@ The automated tests focus on failures that would matter to a visitor:
 - the Work reveal remains ordered, staggered, overlapping, and visible on a
   warm mobile load;
 - offscreen Work images reveal after scrolling;
+- Work photographs expand without captions, navigate by controls, keyboard,
+  and single-touch swipes, and restore page position and focus after closing;
 - responsive sources, reduced motion, no-JavaScript behavior, Arrange mode,
   and browser fallbacks keep working;
 - photo metadata and ordering remain valid;
@@ -115,6 +117,10 @@ Examples:
 - Changing the gallery reveal should retain coverage for a visible stagger,
   overlap, mobile softness, scrolling, and fallback behavior. Exact timing is a
   tuning choice documented in `CODE_GUIDE.md`, not a fixed test contract.
+- Changing the Work lightbox should retain coverage for uncropped responsive
+  images, caption-free presentation, navigation and close paths, scroll/focus
+  restoration, no-JavaScript links, browser zoom, and Arrange-mode isolation.
+  Control styling and exact image padding remain manual visual decisions.
 - Adding a photograph under the existing data rules needs no new test; the unit
   tests already validate the photo configuration.
 - Copy, color, and small spacing changes usually need inspection and the

@@ -11,7 +11,16 @@ test("Important portfolio content works in this browser", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Next image" })).toBeVisible();
 
   await page.goto("/work/");
-  await expectImageLoaded(page.locator(".gallery-item img").first());
+  const workTrigger = page.locator("[data-lightbox-trigger]").first();
+  await expectImageLoaded(workTrigger.locator("img"));
+  await workTrigger.click();
+  const lightbox = page.locator("[data-lightbox]");
+  await expect(lightbox).toBeVisible();
+  await expectImageLoaded(lightbox.locator("[data-lightbox-image]"));
+  await lightbox
+    .getByRole("button", { name: "Close expanded photograph" })
+    .click();
+  await expect(lightbox).not.toHaveAttribute("open", "");
 
   await page.goto("/about/");
   await expect(
