@@ -160,7 +160,7 @@ const lightboxImagesById = new Map(
       autofocus
     >
       <span aria-hidden="true">×</span>
-      <span>Close</span>
+      <span class="lightbox-close-label">Close</span>
     </button>
   </div>
 </dialog>
@@ -521,13 +521,16 @@ const lightboxImagesById = new Map(
 
   .lightbox-close:focus-visible {
     outline: none;
+  }
+
+  .lightbox-close:focus-visible .lightbox-close-label {
     color: blue;
     text-decoration: underline;
     text-underline-offset: 3px;
   }
 
   @media (hover: hover) {
-    .lightbox-control:hover {
+    .lightbox-control:hover .lightbox-close-label {
       color: blue;
       text-decoration: underline;
       text-underline-offset: 3px;
