@@ -8,12 +8,16 @@ import {
   galleryFavorites,
   galleryPinned,
   workGalleryColumns,
+  workGallerySequence,
   workPhotoColumns,
 } from "../data/photos";
 
 // `galleryColumns` is a local presentation name for three columns of complete
 // PhotoRecord objects. `workGalleryColumns` above contains only their IDs.
 const galleryColumns = workPhotoColumns;
+const gallerySequenceIndexes = new Map(
+  workGallerySequence.map((id, index) => [id, index]),
+);
 
 const mobileImagesById = new Map(
   await Promise.all(
@@ -92,6 +96,9 @@ const lightboxImagesById = new Map(
                 class="gallery-image-link"
                 href={lightboxImage.src}
                 data-lightbox-trigger
+                data-gallery-sequence-index={gallerySequenceIndexes.get(
+                  photo.id,
+                )}
                 data-lightbox-src={lightboxImage.src}
                 data-lightbox-srcset={lightboxImage.srcSet.attribute}
                 data-lightbox-width={photo.image.width}

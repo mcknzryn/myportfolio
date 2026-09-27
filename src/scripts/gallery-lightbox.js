@@ -11,7 +11,11 @@ if (
 ) {
   const triggers = [
     ...lightboxGallery.querySelectorAll("[data-lightbox-trigger]"),
-  ];
+  ].sort(
+    (first, second) =>
+      Number(first.dataset.gallerySequenceIndex) -
+      Number(second.dataset.gallerySequenceIndex),
+  );
   const expandedImage = lightbox.querySelector("[data-lightbox-image]");
   const surface = lightbox.querySelector("[data-lightbox-surface]");
   const swipeArea = lightbox.querySelector("[data-lightbox-swipe-area]");
@@ -39,6 +43,22 @@ if (
     nextButton instanceof HTMLButtonElement &&
     typeof lightbox.showModal === "function"
   ) {
+    // The shared sequence follows visible rows even though the DOM groups
+    // complete masonry columns. Keep native Tab behavior at the gallery
+    // boundaries and override only internal steps.
+    triggers.forEach((trigger, index) => {
+      trigger.addEventListener("keydown", (event) => {
+        if (event.key !== "Tab") return;
+
+        const nextIndex = index + (event.shiftKey ? -1 : 1);
+        const nextTrigger = triggers[nextIndex];
+        if (!nextTrigger) return;
+
+        event.preventDefault();
+        nextTrigger.focus();
+      });
+    });
+
     let currentIndex = 0;
     let activeTrigger;
     let lockedScrollPosition = 0;

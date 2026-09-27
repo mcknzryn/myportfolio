@@ -125,6 +125,21 @@ export const workGalleryColumns = [
   readonly PhotoId[],
 ];
 
+// Visual placement remains column-based, while visitor interactions move
+// across each configured row. Deriving that sequence here gives every
+// sequential Work feature one stable source of truth, including uneven final
+// rows where a column may not contain an item at a given index.
+export const workGallerySequence: readonly PhotoId[] = Array.from(
+  {
+    length: Math.max(...workGalleryColumns.map((column) => column.length)),
+  },
+  (_, rowIndex) =>
+    workGalleryColumns.flatMap((column) => {
+      const id = column[rowIndex];
+      return id === undefined ? [] : [id];
+    }),
+).flat();
+
 // Arrange mode uses these author-controlled starting markers. `readonly`
 // communicates that browser editing must create its own state rather than
 // mutate this build-time configuration.
@@ -183,8 +198,8 @@ export function getPhoto(id: PhotoId): PhotoRecord {
 }
 
 // `map` preserves each configured order while replacing every ID with the
-// corresponding PhotoRecord. Work maps twice because it has columns, then
-// photos inside each column.
+// corresponding PhotoRecord. Work's rendered masonry maps twice because it
+// has columns, then photos inside each column.
 export const homePhotos = homePhotoIds.map(getPhoto);
 export const workPhotoColumns = workGalleryColumns.map((column) =>
   column.map(getPhoto),

@@ -16,6 +16,25 @@ type RevealEvent = {
   intermediateOpacity: number | null;
 };
 
+async function galleryAltsInRowOrder(page: Page) {
+  return page.locator(".gallery-column").evaluateAll((columns) => {
+    const columnAlts = columns.map((column) =>
+      [
+        ...column.querySelectorAll<HTMLImageElement>(
+          "[data-lightbox-trigger] img",
+        ),
+      ].map((image) => image.alt),
+    );
+    return Array.from(
+      { length: Math.max(0, ...columnAlts.map((column) => column.length)) },
+      (_, rowIndex) =>
+        columnAlts
+          .map((column) => column[rowIndex])
+          .filter((alt): alt is string => alt !== undefined),
+    ).flat();
+  });
+}
+
 async function recordGalleryAnimations(page: Page) {
   await page.addInitScript(() => {
     const events: RevealEvent[] = [];
@@ -223,6 +242,58 @@ test("Work loads responsive portfolio images", async ({ page }) => {
   expect(sources.lightboxLargest).toBeGreaterThan(sources.desktopLargest);
 });
 
+test("Work visitor sequence and keyboard focus move across gallery columns", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/work/");
+
+  const columns = page.locator(".gallery-column");
+  const triggers = page.locator("[data-lightbox-trigger]");
+  const firstColumn = columns.nth(0).locator("[data-lightbox-trigger]");
+  const secondColumn = columns.nth(1).locator("[data-lightbox-trigger]");
+  const thirdColumn = columns.nth(2).locator("[data-lightbox-trigger]");
+
+  const sequenceIndexes = await triggers.evaluateAll((elements) =>
+    elements
+      .map((element) =>
+        Number(
+          (element as HTMLElement).dataset.gallerySequenceIndex ?? Number.NaN,
+        ),
+      )
+      .sort((first, second) => first - second),
+  );
+  expect(sequenceIndexes).toEqual(
+    Array.from({ length: await triggers.count() }, (_, index) => index),
+  );
+  await expect(firstColumn.first()).toHaveAttribute(
+    "data-gallery-sequence-index",
+    "0",
+  );
+  await expect(secondColumn.first()).toHaveAttribute(
+    "data-gallery-sequence-index",
+    "1",
+  );
+  await expect(thirdColumn.first()).toHaveAttribute(
+    "data-gallery-sequence-index",
+    "2",
+  );
+  await expect(firstColumn.nth(1)).toHaveAttribute(
+    "data-gallery-sequence-index",
+    "3",
+  );
+
+  await firstColumn.first().focus();
+  await page.keyboard.press("Tab");
+  await expect(secondColumn.first()).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(thirdColumn.first()).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(firstColumn.nth(1)).toBeFocused();
+  await page.keyboard.press("Shift+Tab");
+  await expect(thirdColumn.first()).toBeFocused();
+});
+
 test("Work photographs expand without captions on desktop and phone", async ({
   page,
 }) => {
@@ -329,11 +400,7 @@ test("Work lightbox navigation wraps and all close paths restore focus", async (
   await page.goto("/work/");
 
   const triggers = page.locator("[data-lightbox-trigger]");
-  const alts = await triggers
-    .locator("img")
-    .evaluateAll((images) =>
-      images.map((image) => (image as HTMLImageElement).alt),
-    );
+  const alts = await galleryAltsInRowOrder(page);
   expect(alts.length).toBeGreaterThan(2);
 
   const firstTrigger = triggers.first();
@@ -466,8 +533,7 @@ test("Work mobile lightbox fields support taps and swipes but ignore multi-touch
   await page.goto("/work/");
 
   const triggers = page.locator("[data-lightbox-trigger]");
-  const firstAlt = await triggers.first().locator("img").getAttribute("alt");
-  const secondAlt = await triggers.nth(1).locator("img").getAttribute("alt");
+  const [firstAlt, secondAlt] = await galleryAltsInRowOrder(page);
   const dialog = page.locator("[data-lightbox]");
   const swipeArea = dialog.locator("[data-lightbox-swipe-area]");
   const expandedImage = dialog.locator("[data-lightbox-image]");
